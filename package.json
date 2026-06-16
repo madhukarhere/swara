@@ -1,0 +1,22 @@
+{
+  "name": "swara-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Swara - Cultural Music & Lyrics Portal (Phase 1: foundation + Songs module)",
+  "scripts": {
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install",
+    "dev": "concurrently -n api,web -c blue,magenta \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:web": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "start": "concurrently -n api,web -c blue,magenta \"npm --prefix backend run start\" \"npm --prefix frontend run start\"",
+    "seed": "npm --prefix backend run seed",
+    "test": "npm --prefix backend run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
