@@ -13,6 +13,7 @@ import adminSongs from './admin/songs';
 import adminLyrics from './admin/lyrics';
 import adminCategories from './admin/categories';
 import adminComments from './admin/comments';
+import adminEvents from './admin/events';
 import adminDashboard from './admin/dashboard';
 
 export function buildApiRouter(): Router {
@@ -35,6 +36,7 @@ export function buildApiRouter(): Router {
   admin.use('/lyrics', requireAdmin, adminLyrics);
   admin.use('/categories', requireAdmin, adminCategories);
   admin.use('/comments', requireAdmin, adminComments);
+  admin.use('/events', requireAdmin, adminEvents);
   admin.use('/dashboard', requireAdmin, adminDashboard);
   api.use('/admin', admin);
 

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { LayoutDashboard, Music, FolderTree, MessageSquare, LogOut } from 'lucide-react';
+import { LayoutDashboard, Music, FolderTree, MessageSquare, CalendarDays, LogOut } from 'lucide-react';
 import { adminMe, adminLogout } from '@/lib/client-api';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -14,6 +14,7 @@ const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/songs', label: 'Songs', icon: Music },
   { href: '/admin/categories', label: 'Categories', icon: FolderTree },
+  { href: '/admin/events', label: 'Events', icon: CalendarDays },
   { href: '/admin/comments', label: 'Comments', icon: MessageSquare },
 ];
 

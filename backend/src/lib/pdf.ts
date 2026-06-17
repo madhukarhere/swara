@@ -4,21 +4,42 @@ import PDFDocument from 'pdfkit';
 
 /**
  * Lyrics PDF generation via pdfkit. Bundled Noto fonts (fetched by
- * `scripts/fetch-fonts.mjs`) are registered when present so Indic scripts
- * render; if a font is missing we fall back to the built-in Helvetica so the
- * endpoint never crashes (Latin/Roman still render fine).
+ * `scripts/fetch-fonts.mjs`) are registered when present so Indic scripts can
+ * render. Some Noto fonts trip a known fontkit GPOS bug during shaping, so each
+ * font is probed once and skipped if it throws — that script then falls back to
+ * Latin/Helvetica. The whole document is built into a Buffer so any unexpected
+ * error falls back to a plain Helvetica build instead of streaming a broken PDF.
  */
 
 const FONT_DIR = path.resolve(__dirname, '../../assets/fonts');
 
-const FONT_FILES: Record<string, { file: string; name: string }> = {
-  telugu: { file: 'NotoSansTelugu-Regular.ttf', name: 'NotoTelugu' },
-  devanagari: { file: 'NotoSansDevanagari-Regular.ttf', name: 'NotoDevanagari' },
-  tamil: { file: 'NotoSansTamil-Regular.ttf', name: 'NotoTamil' },
-  kannada: { file: 'NotoSansKannada-Regular.ttf', name: 'NotoKannada' },
-  malayalam: { file: 'NotoSansMalayalam-Regular.ttf', name: 'NotoMalayalam' },
-  latin: { file: 'NotoSans-Regular.ttf', name: 'NotoLatin' },
+const FONT_FILES: Record<string, { file: string; name: string; sample: string }> = {
+  telugu: { file: 'NotoSansTelugu-Regular.ttf', name: 'NotoTelugu', sample: 'క్ష తెలుగు' },
+  devanagari: { file: 'NotoSansDevanagari-Regular.ttf', name: 'NotoDevanagari', sample: 'क्ष भज' },
+  tamil: { file: 'NotoSansTamil-Regular.ttf', name: 'NotoTamil', sample: 'க்ஷ' },
+  kannada: { file: 'NotoSansKannada-Regular.ttf', name: 'NotoKannada', sample: 'ಕ್ಷ' },
+  malayalam: { file: 'NotoSansMalayalam-Regular.ttf', name: 'NotoMalayalam', sample: 'ക്ഷ' },
+  latin: { file: 'NotoSans-Regular.ttf', name: 'NotoLatin', sample: 'Aa Bb' },
 };
+
+// Cache per font file: true = renders without throwing, false = unsafe (skip).
+const safetyCache = new Map<string, boolean>();
+
+function fontProbeSafe(fontPath: string, sample: string): boolean {
+  const cached = safetyCache.get(fontPath);
+  if (cached !== undefined) return cached;
+  let safe = true;
+  try {
+    const probe = new PDFDocument();
+    probe.registerFont('probe', fontPath);
+    probe.font('probe');
+    probe.text(sample); // triggers fontkit layout — the crash point, if any
+  } catch {
+    safe = false;
+  }
+  safetyCache.set(fontPath, safe);
+  return safe;
+}
 
 function scriptKeyFor(languageCode: string): keyof typeof FONT_FILES {
   const c = (languageCode || '').toLowerCase();
@@ -30,22 +51,20 @@ function scriptKeyFor(languageCode: string): keyof typeof FONT_FILES {
   return 'latin';
 }
 
-/** Register every available bundled font once; return a (code -> fontName) resolver. */
-function makeFontResolver(doc: PDFKit.PDFDocument): (languageCode: string) => string {
-  const registered: Partial<Record<string, string>> = {};
+/** Register available + safe fonts on the doc; return a (code -> fontName) resolver. */
+function makeResolver(doc: PDFKit.PDFDocument): (languageCode: string) => string {
+  const available: Partial<Record<string, string>> = {};
   for (const [key, entry] of Object.entries(FONT_FILES)) {
     const fp = path.join(FONT_DIR, entry.file);
-    if (fs.existsSync(fp)) {
-      try {
-        doc.registerFont(entry.name, fp);
-        registered[key] = entry.name;
-      } catch {
-        /* ignore unusable font file */
-      }
+    if (!fs.existsSync(fp) || !fontProbeSafe(fp, entry.sample)) continue;
+    try {
+      doc.registerFont(entry.name, fp);
+      available[key] = entry.name;
+    } catch {
+      /* ignore */
     }
   }
-  return (languageCode: string) =>
-    registered[scriptKeyFor(languageCode)] || registered.latin || 'Helvetica';
+  return (languageCode: string) => available[scriptKeyFor(languageCode)] || available.latin || 'Helvetica';
 }
 
 export interface LyricsPdfSection {
@@ -61,46 +80,52 @@ export interface LyricsPdfInput {
   siteName?: string;
 }
 
-/** Stream a generated lyrics PDF into the given writable (usually an HTTP response). */
-export function streamLyricsPdf(out: NodeJS.WritableStream, input: LyricsPdfInput): void {
-  const doc = new PDFDocument({ margin: 50, size: 'A4', info: { Title: input.title } });
-  doc.pipe(out);
+function buildOnce(input: LyricsPdfInput, useFonts: boolean): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50, size: 'A4', info: { Title: input.title } });
+    const chunks: Buffer[] = [];
+    doc.on('data', (c: Buffer) => chunks.push(c));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
 
-  const fontFor = makeFontResolver(doc);
-  const latin = fontFor('en');
+    try {
+      const fontFor = useFonts ? makeResolver(doc) : () => 'Helvetica';
+      const latin = fontFor('en');
 
-  doc.font(latin).fontSize(22).fillColor('#7c2d12').text(input.title, { align: 'center' });
-  doc.moveDown(0.3);
+      doc.font(latin).fontSize(22).fillColor('#7c2d12').text(input.title, { align: 'center' });
+      doc.moveDown(0.3);
 
-  const metaLine = input.meta
-    .filter((m) => m.value)
-    .map((m) => `${m.label}: ${m.value}`)
-    .join('    •    ');
-  if (metaLine) {
-    doc.font(latin).fontSize(10).fillColor('#6b7280').text(metaLine, { align: 'center' });
+      const metaLine = input.meta
+        .filter((m) => m.value)
+        .map((m) => `${m.label}: ${m.value}`)
+        .join('    •    ');
+      if (metaLine) doc.font(latin).fontSize(10).fillColor('#6b7280').text(metaLine, { align: 'center' });
+
+      doc.moveDown(0.6);
+      doc.strokeColor('#e5d5c0').lineWidth(1).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+      doc.moveDown(0.8);
+
+      for (const section of input.sections) {
+        if (doc.y > 720) doc.addPage();
+        doc.font(latin).fontSize(13).fillColor('#b45309').text(section.language.toUpperCase());
+        doc.moveDown(0.25);
+        doc.font(fontFor(section.languageCode)).fontSize(13).fillColor('#111827').text(section.content || '', { align: 'left', lineGap: 5 });
+        doc.moveDown(0.9);
+      }
+
+      doc.font(latin).fontSize(8).fillColor('#9ca3af').text(`Generated by ${input.siteName || 'Swara'}`, 50, 800, { align: 'center', width: 495 });
+      doc.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/** Build a lyrics PDF as a Buffer; never throws for content reasons (falls back to Helvetica). */
+export async function buildLyricsPdf(input: LyricsPdfInput): Promise<Buffer> {
+  try {
+    return await buildOnce(input, true);
+  } catch {
+    return buildOnce(input, false);
   }
-
-  doc.moveDown(0.6);
-  doc.strokeColor('#e5d5c0').lineWidth(1).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-  doc.moveDown(0.8);
-
-  for (const section of input.sections) {
-    if (doc.y > 720) doc.addPage();
-    doc.font(latin).fontSize(13).fillColor('#b45309').text(section.language.toUpperCase());
-    doc.moveDown(0.25);
-    doc
-      .font(fontFor(section.languageCode))
-      .fontSize(13)
-      .fillColor('#111827')
-      .text(section.content || '', { align: 'left', lineGap: 5 });
-    doc.moveDown(0.9);
-  }
-
-  doc
-    .font(latin)
-    .fontSize(8)
-    .fillColor('#9ca3af')
-    .text(`Generated by ${input.siteName || 'Swara'}`, 50, 800, { align: 'center', width: 495 });
-
-  doc.end();
 }
