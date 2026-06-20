@@ -14,6 +14,7 @@ import {
   MiniContentRow,
 } from '@/components/home/home-sections';
 import { MotifDivider, InstrumentBand } from '@/components/cultural/motif';
+import { DevotionPanel, VeenaBanner } from '@/components/cultural/cultural-image';
 import { Veena, Diya, Bansuri, Tabla, Lotus } from '@/components/icons/cultural-icons';
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +41,8 @@ export default async function HomePage() {
       {enabled('announcement') && <AnnouncementBar items={data.announcements} />}
       <div className="container space-y-12 py-8 motif-bg">
         {enabled('hero') && data.heroSlides.length > 0 ? <HeroCarousel slides={data.heroSlides} /> : null}
+
+        <DevotionPanel />
 
         {enabled('search') ? (
           <section className="mx-auto max-w-2xl space-y-4 text-center">
@@ -106,8 +109,9 @@ export default async function HomePage() {
           </section>
         ) : null}
 
-        <section>
-          <MotifDivider className="mb-6" />
+        <section className="space-y-6">
+          <MotifDivider />
+          <VeenaBanner />
           <InstrumentBand />
         </section>
 

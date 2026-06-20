@@ -34,3 +34,7 @@ coverage/
 # public routes live in backend/src/routes/public — force them back in.
 !backend/src/routes/public/
 !backend/src/routes/public/**
+
+# Next.js static assets also live under a "public" dir — keep them tracked.
+!frontend/public/
+!frontend/public/**
