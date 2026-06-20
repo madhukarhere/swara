@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { SongCard } from '@/components/song-card';
 import { categoryName, type Song, type Category, type HomepageData } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
+import { iconForKey } from '@/components/icons/cultural-icons';
 
 export function SectionHeading({ title, href, icon }: { title: string; href?: string; icon?: React.ReactNode }) {
   return (
@@ -102,15 +103,22 @@ export function QuoteCard({ quote }: { quote: HomepageData['quote'] }) {
 export function CategoryChips({ categories }: { categories: Category[] }) {
   if (!categories.length) return null;
   return (
-    <div className="flex flex-wrap gap-2">
-      {categories.map((c) => (
-        <Link key={c.id} href={`/songs?category=${c.slug}`}>
-          <Badge variant="outline" className="cursor-pointer px-4 py-1.5 text-sm hover:bg-muted">
-            {c.name}
-            {typeof c.songCount === 'number' ? <span className="ml-1.5 text-muted-foreground">({c.songCount})</span> : null}
-          </Badge>
-        </Link>
-      ))}
+    <div className="flex flex-wrap gap-2.5">
+      {categories.map((c) => {
+        const Ic = iconForKey(c.id);
+        return (
+          <Link key={c.id} href={`/songs?category=${c.slug}`}>
+            <Badge
+              variant="outline"
+              className="inline-flex cursor-pointer items-center gap-2 px-4 py-2 text-sm hover:border-primary/40 hover:bg-muted"
+            >
+              <Ic className="h-4 w-4 text-primary" />
+              {c.name}
+              {typeof c.songCount === 'number' ? <span className="text-muted-foreground">({c.songCount})</span> : null}
+            </Badge>
+          </Link>
+        );
+      })}
     </div>
   );
 }

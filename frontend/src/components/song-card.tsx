@@ -3,9 +3,11 @@ import { Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { categoryName, type Song } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
+import { iconForKey } from '@/components/icons/cultural-icons';
 
 export function SongCard({ song }: { song: Song }) {
   const cat = categoryName(song.category);
+  const Fallback = iconForKey(song.id);
   return (
     <Link href={`/songs/${song.slug}`} className="group block">
       <div className="overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
@@ -14,7 +16,9 @@ export function SongCard({ song }: { song: Song }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={song.coverUrl} alt={song.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
           ) : (
-            <div className="flex h-full items-center justify-center temple-gradient font-serif text-4xl text-white">ॐ</div>
+            <div className="flex h-full items-center justify-center temple-gradient text-white">
+              <Fallback className="h-1/3 w-1/3 opacity-90" />
+            </div>
           )}
           <span className="absolute bottom-2 right-2 flex h-10 w-10 translate-y-1 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100">
             <Play className="h-5 w-5 translate-x-0.5 fill-current" />

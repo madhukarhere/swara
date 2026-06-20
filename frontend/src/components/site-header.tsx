@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from './theme-toggle';
+import { Om } from '@/components/icons/cultural-icons';
 
 const nav = [
   { href: '/', label: 'Home' },
@@ -14,8 +15,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg temple-gradient font-serif text-lg text-white shadow-sm">
-            ॐ
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg temple-gradient text-white shadow-sm">
+            <Om className="h-5 w-5" />
           </span>
           <span className="font-serif text-xl font-bold tracking-tight">Swara</span>
         </Link>

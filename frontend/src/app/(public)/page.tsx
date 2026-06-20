@@ -13,6 +13,8 @@ import {
   FestivalBanner,
   MiniContentRow,
 } from '@/components/home/home-sections';
+import { MotifDivider, InstrumentBand } from '@/components/cultural/motif';
+import { Veena, Diya, Bansuri, Tabla, Lotus } from '@/components/icons/cultural-icons';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +38,7 @@ export default async function HomePage() {
   return (
     <>
       {enabled('announcement') && <AnnouncementBar items={data.announcements} />}
-      <div className="container space-y-12 py-8">
+      <div className="container space-y-12 py-8 motif-bg">
         {enabled('hero') && data.heroSlides.length > 0 ? <HeroCarousel slides={data.heroSlides} /> : null}
 
         {enabled('search') ? (
@@ -48,6 +50,8 @@ export default async function HomePage() {
             <SearchBar big />
           </section>
         ) : null}
+
+        <MotifDivider />
 
         <div className="grid gap-6 lg:grid-cols-3">
           {enabled('calendar') ? <CalendarWidget today={data.today} /> : null}
@@ -64,13 +68,13 @@ export default async function HomePage() {
           <section className="grid gap-8 lg:grid-cols-2">
             {enabled('top5') && data.top5.length > 0 ? (
               <div>
-                <SectionHeading title="Top 5 Songs" />
+                <SectionHeading title="Top 5 Songs" icon={<Veena className="h-6 w-6 text-primary" />} />
                 <Top5List songs={data.top5} />
               </div>
             ) : null}
             {enabled('featured') && data.featured.length > 0 ? (
               <div>
-                <SectionHeading title="Featured" href="/songs" />
+                <SectionHeading title="Featured" href="/songs" icon={<Diya className="h-6 w-6 text-primary" />} />
                 <div className="grid grid-cols-2 gap-4">
                   {data.featured.slice(0, 4).map((s) => (
                     <SongCard key={s.id} song={s} />
@@ -83,24 +87,29 @@ export default async function HomePage() {
 
         {enabled('recentlyAdded') && data.recentlyAdded.length > 0 ? (
           <section>
-            <SectionHeading title="Recently Added" href="/songs?sort=latest" />
+            <SectionHeading title="Recently Added" href="/songs?sort=latest" icon={<Bansuri className="h-6 w-6 text-primary" />} />
             <SongGrid songs={data.recentlyAdded} />
           </section>
         ) : null}
 
         {enabled('mostPlayed') && data.mostPlayed.length > 0 ? (
           <section>
-            <SectionHeading title="Most Played" href="/songs?sort=most_played" />
+            <SectionHeading title="Most Played" href="/songs?sort=most_played" icon={<Tabla className="h-6 w-6 text-primary" />} />
             <SongGrid songs={data.mostPlayed} />
           </section>
         ) : null}
 
         {data.categories.length > 0 ? (
           <section>
-            <SectionHeading title="Browse by Category" href="/songs" />
+            <SectionHeading title="Browse by Category" href="/songs" icon={<Lotus className="h-6 w-6 text-primary" />} />
             <CategoryChips categories={data.categories} />
           </section>
         ) : null}
+
+        <section>
+          <MotifDivider className="mb-6" />
+          <InstrumentBand />
+        </section>
 
         <MiniContentRow data={data} />
       </div>
