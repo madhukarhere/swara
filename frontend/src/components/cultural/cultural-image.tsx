@@ -50,7 +50,12 @@ export function VeenaBanner() {
   return (
     <figure className="flex animate-fade-in flex-col items-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="Saraswati veena" loading="lazy" className="max-h-44 w-auto object-contain drop-shadow-lg" />
+      <img
+        src={src}
+        alt="Saraswati veena"
+        loading="lazy"
+        className="max-h-52 w-auto rounded-xl border bg-card object-contain p-2 shadow-md"
+      />
       <figcaption className="mt-2 text-sm italic text-muted-foreground">
         The veena — the instrument of Goddess Saraswati
       </figcaption>
