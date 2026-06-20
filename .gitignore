@@ -29,3 +29,8 @@ data/**/*
 # misc
 .DS_Store
 coverage/
+
+# The user's global gitignore ignores any dir named "public"; our backend API
+# public routes live in backend/src/routes/public — force them back in.
+!backend/src/routes/public/
+!backend/src/routes/public/**
