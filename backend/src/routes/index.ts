@@ -18,6 +18,7 @@ import adminComments from './admin/comments';
 import adminEvents from './admin/events';
 import adminArticles from './admin/articles';
 import adminQuotes from './admin/quotes';
+import adminAnnouncements from './admin/announcements';
 import adminDashboard from './admin/dashboard';
 
 export function buildApiRouter(): Router {
@@ -45,6 +46,7 @@ export function buildApiRouter(): Router {
   admin.use('/events', requireAdmin, adminEvents);
   admin.use('/articles', requireAdmin, adminArticles);
   admin.use('/quotes', requireAdmin, adminQuotes);
+  admin.use('/announcements', requireAdmin, adminAnnouncements);
   admin.use('/dashboard', requireAdmin, adminDashboard);
   api.use('/admin', admin);
 
