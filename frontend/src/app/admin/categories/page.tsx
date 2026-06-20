@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Plus, Trash2, Pencil, X } from 'lucide-react';
 import { apiJson, apiForm } from '@/lib/client-api';
+import { useAdminList } from '@/lib/use-admin-list';
+import { AdminSearch, AdminPager } from '@/components/admin/list-controls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,8 +15,8 @@ import { Spinner } from '@/components/ui/spinner';
 import type { Category } from '@/lib/types';
 
 export default function AdminCategoriesPage() {
-  const [cats, setCats] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items: cats, meta, loading, search, setPage, reload } = useAdminList<Category>('/api/admin/categories', 12);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -22,15 +24,6 @@ export default function AdminCategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const load = async () => {
-    const r = await apiJson<{ data: Category[] }>('/api/admin/categories');
-    if (r.ok) setCats(r.body.data);
-    setLoading(false);
-  };
-  useEffect(() => {
-    void load();
-  }, []);
 
   const reset = () => {
     setEditingId(null);
@@ -56,7 +49,7 @@ export default function AdminCategoriesPage() {
     if (r.ok) {
       setMsg({ type: 'ok', text: editingId ? 'Category updated.' : 'Category created.' });
       reset();
-      void load();
+      void reload();
     } else {
       setMsg({ type: 'err', text: (r.body as { error?: string }).error || 'Could not save category.' });
     }
@@ -73,7 +66,7 @@ export default function AdminCategoriesPage() {
   const remove = async (c: Category) => {
     if (!confirm(`Delete category “${c.name}”?`)) return;
     const r = await apiJson(`/api/admin/categories/${c.id}`, 'DELETE');
-    if (r.ok) void load();
+    if (r.ok) void reload();
     else setMsg({ type: 'err', text: (r.body as { error?: string }).error || 'Could not delete.' });
   };
 
@@ -124,35 +117,41 @@ export default function AdminCategoriesPage() {
         </CardContent>
       </Card>
 
+      <AdminSearch onSearch={search} placeholder="Search categories…" />
+
       {loading ? (
         <div className="flex justify-center py-12">
           <Spinner className="h-7 w-7" />
         </div>
+      ) : cats.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No categories found.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cats.map((c) => (
-            <Card key={c.id}>
-              <CardContent className="flex items-start justify-between gap-3 p-4">
-                <div className="min-w-0">
-                  <p className="font-serif font-semibold">{c.name}</p>
-                  {c.description ? <p className="line-clamp-2 text-sm text-muted-foreground">{c.description}</p> : null}
-                  <Badge variant="muted" className="mt-2">
-                    {c.songCount ?? 0} songs
-                  </Badge>
-                </div>
-                <div className="flex shrink-0 flex-col gap-1">
-                  <Button size="sm" variant="outline" onClick={() => edit(c)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(c)} aria-label="Delete">
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {cats.length === 0 ? <p className="text-sm text-muted-foreground">No categories yet.</p> : null}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {cats.map((c) => (
+              <Card key={c.id}>
+                <CardContent className="flex items-start justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="font-serif font-semibold">{c.name}</p>
+                    {c.description ? <p className="line-clamp-2 text-sm text-muted-foreground">{c.description}</p> : null}
+                    <Badge variant="muted" className="mt-2">
+                      {c.songCount ?? 0} songs
+                    </Badge>
+                  </div>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    <Button size="sm" variant="outline" onClick={() => edit(c)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => remove(c)} aria-label="Delete">
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <AdminPager page={meta.page} pages={meta.pages} total={meta.total} onPage={setPage} />
+        </>
       )}
     </div>
   );

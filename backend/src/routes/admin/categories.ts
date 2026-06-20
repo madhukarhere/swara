@@ -9,21 +9,41 @@ import { writeAudit } from '../../middleware/audit';
 import { uploader, deleteStored } from '../../lib/storage';
 import { cleanText } from '../../lib/sanitize';
 import { uniqueSlug } from '../../lib/slugify';
+import { paginate } from '../../lib/http';
 import { serializeCategory } from '../../serializers';
 
 const router = Router();
 const coverUpload = uploader('images', 'image').single('cover');
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const listQuery = z.object({
+  q: z.string().trim().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(12),
+});
 
 /* GET /api/admin/categories */
 router.get(
   '/',
-  asyncHandler(async (_req, res) => {
-    const [cats, counts] = await Promise.all([
-      Category.find().sort({ order: 1, name: 1 }).lean(),
+  validate({ query: listQuery }),
+  asyncHandler(async (req, res) => {
+    const { q, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
+    const filter: Record<string, unknown> = {};
+    if (q) filter.name = new RegExp(escapeRegex(q), 'i');
+    const [cats, total, counts] = await Promise.all([
+      Category.find(filter).sort({ order: 1, name: 1 }).skip((page - 1) * limit).limit(limit).lean(),
+      Category.countDocuments(filter),
       Song.aggregate([{ $group: { _id: '$category', n: { $sum: 1 } } }]),
     ]);
     const countMap = new Map(counts.map((c: { _id: unknown; n: number }) => [String(c._id), c.n]));
-    res.json({ data: cats.map((c) => ({ ...serializeCategory(c), songCount: countMap.get(String(c._id)) ?? 0 })) });
+    res.json(
+      paginate(
+        cats.map((c) => ({ ...serializeCategory(c), songCount: countMap.get(String(c._id)) ?? 0 })),
+        total,
+        page,
+        limit,
+      ),
+    );
   }),
 );
 

@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Plus, Trash2, Pencil, X, CalendarDays, MapPin } from 'lucide-react';
 import { apiJson, apiForm } from '@/lib/client-api';
+import { useAdminList } from '@/lib/use-admin-list';
+import { AdminSearch, AdminPager } from '@/components/admin/list-controls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,29 +38,19 @@ function toLocalInput(iso?: string | null): string {
 const empty = { title: '', description: '', startDate: '', endDate: '', location: '', link: '', status: 'published' };
 
 export default function AdminEventsPage() {
-  const [events, setEvents] = useState<AdminEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items: events, meta, loading, search, setPage, reload } = useAdminList<AdminEvent>('/api/admin/events', 10);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...empty });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
 
-  const load = async () => {
-    const r = await apiJson<{ data: AdminEvent[] }>('/api/admin/events');
-    if (r.ok) setEvents(r.body.data);
-    setLoading(false);
-  };
-  useEffect(() => {
-    void load();
-  }, []);
-
   const reset = () => {
     setEditingId(null);
     setForm({ ...empty });
     if (bannerRef.current) bannerRef.current.value = '';
   };
-
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const submit = async (e: React.FormEvent) => {
@@ -81,7 +73,7 @@ export default function AdminEventsPage() {
     if (r.ok) {
       setMsg({ type: 'ok', text: editingId ? 'Event updated.' : 'Event created.' });
       reset();
-      void load();
+      void reload();
     } else {
       setMsg({ type: 'err', text: (r.body as { error?: string }).error || 'Could not save event.' });
     }
@@ -104,7 +96,7 @@ export default function AdminEventsPage() {
   const remove = async (ev: AdminEvent) => {
     if (!confirm(`Delete event “${ev.title}”?`)) return;
     const r = await apiJson(`/api/admin/events/${ev.id}`, 'DELETE');
-    if (r.ok) void load();
+    if (r.ok) void reload();
     else setMsg({ type: 'err', text: 'Could not delete event.' });
   };
 
@@ -177,49 +169,54 @@ export default function AdminEventsPage() {
         </CardContent>
       </Card>
 
+      <AdminSearch onSearch={search} placeholder="Search events…" />
+
       {loading ? (
         <div className="flex justify-center py-12">
           <Spinner className="h-7 w-7" />
         </div>
       ) : events.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No events yet. Create one above.</p>
+        <p className="text-sm text-muted-foreground">No events found.</p>
       ) : (
-        <div className="space-y-3">
-          {events.map((ev) => (
-            <Card key={ev.id}>
-              <CardContent className="flex items-start justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-serif font-semibold">{ev.title}</span>
-                    <Badge variant={ev.status === 'published' ? 'success' : 'muted'}>{ev.status}</Badge>
-                  </div>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <CalendarDays className="h-3.5 w-3.5" />
-                      {fmt(ev.startDate)}
-                      {ev.endDate ? ` – ${fmt(ev.endDate)}` : ''}
-                    </span>
-                    {ev.location ? (
+        <>
+          <div className="space-y-3">
+            {events.map((ev) => (
+              <Card key={ev.id}>
+                <CardContent className="flex items-start justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-serif font-semibold">{ev.title}</span>
+                      <Badge variant={ev.status === 'published' ? 'success' : 'muted'}>{ev.status}</Badge>
+                    </div>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {ev.location}
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {fmt(ev.startDate)}
+                        {ev.endDate ? ` – ${fmt(ev.endDate)}` : ''}
                       </span>
-                    ) : null}
-                  </p>
-                  {ev.description ? <p className="mt-1 line-clamp-2 text-sm text-foreground/80">{ev.description}</p> : null}
-                </div>
-                <div className="flex shrink-0 flex-col gap-1">
-                  <Button size="sm" variant="outline" onClick={() => edit(ev)}>
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(ev)} aria-label="Delete">
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                      {ev.location ? (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {ev.location}
+                        </span>
+                      ) : null}
+                    </p>
+                    {ev.description ? <p className="mt-1 line-clamp-2 text-sm text-foreground/80">{ev.description}</p> : null}
+                  </div>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    <Button size="sm" variant="outline" onClick={() => edit(ev)}>
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => remove(ev)} aria-label="Delete">
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <AdminPager page={meta.page} pages={meta.pages} total={meta.total} onPage={setPage} />
+        </>
       )}
     </div>
   );

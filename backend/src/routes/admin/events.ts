@@ -9,9 +9,17 @@ import { writeAudit } from '../../middleware/audit';
 import { uploader, deleteStored, publicUrl } from '../../lib/storage';
 import { cleanText } from '../../lib/sanitize';
 import { uniqueSlug } from '../../lib/slugify';
+import { paginate } from '../../lib/http';
 
 const router = Router();
 const bannerUpload = uploader('banners', 'image').single('banner');
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const listQuery = z.object({
+  q: z.string().trim().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function serializeEvent(e: any) {
@@ -48,9 +56,19 @@ const eventUpdate = eventCreate.partial();
 /* GET /api/admin/events */
 router.get(
   '/',
-  asyncHandler(async (_req, res) => {
-    const events = await EventModel.find().sort({ startDate: -1 }).lean();
-    res.json({ data: events.map(serializeEvent) });
+  validate({ query: listQuery }),
+  asyncHandler(async (req, res) => {
+    const { q, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
+    const filter: Record<string, unknown> = {};
+    if (q) {
+      const rx = new RegExp(escapeRegex(q), 'i');
+      filter.$or = [{ title: rx }, { location: rx }];
+    }
+    const [items, total] = await Promise.all([
+      EventModel.find(filter).sort({ startDate: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      EventModel.countDocuments(filter),
+    ]);
+    res.json(paginate(items.map(serializeEvent), total, page, limit));
   }),
 );
 

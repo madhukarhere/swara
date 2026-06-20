@@ -7,9 +7,17 @@ import { validate } from '../../middleware/validate';
 import { AppError } from '../../middleware/error';
 import { writeAudit } from '../../middleware/audit';
 import { cleanText } from '../../lib/sanitize';
+import { paginate } from '../../lib/http';
 import { serializeQuote } from '../../serializers';
 
 const router = Router();
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const listQuery = z.object({
+  q: z.string().trim().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(12),
+});
 
 const quoteCreate = z.object({
   text: z.string().trim().min(1).max(1000),
@@ -23,9 +31,19 @@ const quoteUpdate = quoteCreate.partial();
 /* GET /api/admin/quotes */
 router.get(
   '/',
-  asyncHandler(async (_req, res) => {
-    const quotes = await Quote.find().sort({ createdAt: -1 }).lean();
-    res.json({ data: quotes.map(serializeQuote) });
+  validate({ query: listQuery }),
+  asyncHandler(async (req, res) => {
+    const { q, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
+    const filter: Record<string, unknown> = {};
+    if (q) {
+      const rx = new RegExp(escapeRegex(q), 'i');
+      filter.$or = [{ text: rx }, { author: rx }];
+    }
+    const [items, total] = await Promise.all([
+      Quote.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      Quote.countDocuments(filter),
+    ]);
+    res.json(paginate(items.map(serializeQuote), total, page, limit));
   }),
 );
 

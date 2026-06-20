@@ -9,10 +9,19 @@ import { writeAudit } from '../../middleware/audit';
 import { uploader, deleteStored } from '../../lib/storage';
 import { cleanText, cleanRich } from '../../lib/sanitize';
 import { uniqueSlug } from '../../lib/slugify';
+import { paginate } from '../../lib/http';
 import { serializeArticle, serializeArticleDetail } from '../../serializers';
 
 const router = Router();
 const coverUpload = uploader('article_images', 'image').single('cover');
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const listQuery = z.object({
+  q: z.string().trim().optional(),
+  status: z.enum(['draft', 'published', 'archived', 'all']).default('all'),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+});
 
 const tagsField = z.preprocess(
   (v) => (typeof v === 'string' ? v.split(',').map((s) => s.trim()).filter(Boolean) : v),
@@ -32,9 +41,17 @@ const articleUpdate = articleCreate.partial();
 /* GET /api/admin/articles */
 router.get(
   '/',
-  asyncHandler(async (_req, res) => {
-    const articles = await Article.find().sort({ createdAt: -1 }).lean();
-    res.json({ data: articles.map(serializeArticle) });
+  validate({ query: listQuery }),
+  asyncHandler(async (req, res) => {
+    const { q, status, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
+    const filter: Record<string, unknown> = {};
+    if (status !== 'all') filter.status = status;
+    if (q) filter.title = new RegExp(escapeRegex(q), 'i');
+    const [items, total] = await Promise.all([
+      Article.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+      Article.countDocuments(filter),
+    ]);
+    res.json(paginate(items.map(serializeArticle), total, page, limit));
   }),
 );
 

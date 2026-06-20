@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Pencil, X } from 'lucide-react';
 import { apiJson } from '@/lib/client-api';
+import { useAdminList } from '@/lib/use-admin-list';
+import { AdminSearch, AdminPager } from '@/components/admin/list-controls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,21 +26,12 @@ interface AdminQuote {
 const empty = { text: '', author: '', language: '', mode: 'random', isActive: true };
 
 export default function AdminQuotesPage() {
-  const [quotes, setQuotes] = useState<AdminQuote[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items: quotes, meta, loading, search, setPage, reload } = useAdminList<AdminQuote>('/api/admin/quotes', 12);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...empty });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-
-  const load = async () => {
-    const r = await apiJson<{ data: AdminQuote[] }>('/api/admin/quotes');
-    if (r.ok) setQuotes(r.body.data);
-    setLoading(false);
-  };
-  useEffect(() => {
-    void load();
-  }, []);
 
   const reset = () => {
     setEditingId(null);
@@ -63,7 +56,7 @@ export default function AdminQuotesPage() {
     if (r.ok) {
       setMsg({ type: 'ok', text: editingId ? 'Quote updated.' : 'Quote created.' });
       reset();
-      void load();
+      void reload();
     } else {
       setMsg({ type: 'err', text: (r.body as { error?: string }).error || 'Could not save quote.' });
     }
@@ -78,7 +71,7 @@ export default function AdminQuotesPage() {
   const remove = async (q: AdminQuote) => {
     if (!confirm('Delete this quote?')) return;
     const r = await apiJson(`/api/admin/quotes/${q.id}`, 'DELETE');
-    if (r.ok) void load();
+    if (r.ok) void reload();
     else setMsg({ type: 'err', text: 'Could not delete quote.' });
   };
 
@@ -141,38 +134,43 @@ export default function AdminQuotesPage() {
         </CardContent>
       </Card>
 
+      <AdminSearch onSearch={search} placeholder="Search quotes…" />
+
       {loading ? (
         <div className="flex justify-center py-12">
           <Spinner className="h-7 w-7" />
         </div>
       ) : quotes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No quotes yet. Add one above.</p>
+        <p className="text-sm text-muted-foreground">No quotes found.</p>
       ) : (
-        <div className="space-y-3">
-          {quotes.map((q) => (
-            <Card key={q.id}>
-              <CardContent className="flex items-start justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <blockquote className="font-serif italic">“{q.text}”</blockquote>
-                  <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    {q.author ? <span>— {q.author}</span> : null}
-                    {q.language ? <span>· {q.language}</span> : null}
-                    {q.mode === 'featured' ? <Badge variant="gold">Featured</Badge> : null}
-                    {!q.isActive ? <Badge variant="muted">Inactive</Badge> : null}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col gap-1">
-                  <Button size="sm" variant="outline" onClick={() => edit(q)}>
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(q)} aria-label="Delete">
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <>
+          <div className="space-y-3">
+            {quotes.map((q) => (
+              <Card key={q.id}>
+                <CardContent className="flex items-start justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <blockquote className="font-serif italic">“{q.text}”</blockquote>
+                    <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      {q.author ? <span>— {q.author}</span> : null}
+                      {q.language ? <span>· {q.language}</span> : null}
+                      {q.mode === 'featured' ? <Badge variant="gold">Featured</Badge> : null}
+                      {!q.isActive ? <Badge variant="muted">Inactive</Badge> : null}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    <Button size="sm" variant="outline" onClick={() => edit(q)}>
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => remove(q)} aria-label="Delete">
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <AdminPager page={meta.page} pages={meta.pages} total={meta.total} onPage={setPage} />
+        </>
       )}
     </div>
   );

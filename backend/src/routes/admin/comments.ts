@@ -14,6 +14,7 @@ const router = Router();
 /* GET /api/admin/comments?status=pending|approved|rejected|all */
 const listQuery = z.object({
   status: z.enum(['pending', 'approved', 'rejected', 'all']).default('pending'),
+  q: z.string().trim().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -22,9 +23,13 @@ router.get(
   '/',
   validate({ query: listQuery }),
   asyncHandler(async (req, res) => {
-    const { status, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
+    const { status, q, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
     const filter: Record<string, unknown> = {};
     if (status !== 'all') filter.status = status;
+    if (q) {
+      const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [{ name: rx }, { comment: rx }];
+    }
 
     const [items, total, counts] = await Promise.all([
       SongComment.find(filter)

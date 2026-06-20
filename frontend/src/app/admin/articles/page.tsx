@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Plus, Trash2, Pencil, X } from 'lucide-react';
 import { apiJson, apiForm } from '@/lib/client-api';
+import { useAdminList } from '@/lib/use-admin-list';
+import { AdminSearch, AdminPager } from '@/components/admin/list-controls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,22 +29,13 @@ interface AdminArticle {
 const empty = { title: '', excerpt: '', body: '', author: '', tags: '', status: 'draft' };
 
 export default function AdminArticlesPage() {
-  const [articles, setArticles] = useState<AdminArticle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items: articles, meta, loading, search, setPage, reload } = useAdminList<AdminArticle>('/api/admin/articles', 10);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...empty });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const coverRef = useRef<HTMLInputElement>(null);
-
-  const load = async () => {
-    const r = await apiJson<{ data: AdminArticle[] }>('/api/admin/articles');
-    if (r.ok) setArticles(r.body.data);
-    setLoading(false);
-  };
-  useEffect(() => {
-    void load();
-  }, []);
 
   const reset = () => {
     setEditingId(null);
@@ -70,7 +63,7 @@ export default function AdminArticlesPage() {
     if (r.ok) {
       setMsg({ type: 'ok', text: editingId ? 'Article updated.' : 'Article created.' });
       reset();
-      void load();
+      void reload();
     } else {
       setMsg({ type: 'err', text: (r.body as { error?: string }).error || 'Could not save article.' });
     }
@@ -94,7 +87,7 @@ export default function AdminArticlesPage() {
   const remove = async (a: AdminArticle) => {
     if (!confirm(`Delete article “${a.title}”?`)) return;
     const r = await apiJson(`/api/admin/articles/${a.id}`, 'DELETE');
-    if (r.ok) void load();
+    if (r.ok) void reload();
     else setMsg({ type: 'err', text: 'Could not delete article.' });
   };
 
@@ -163,41 +156,46 @@ export default function AdminArticlesPage() {
         </CardContent>
       </Card>
 
+      <AdminSearch onSearch={search} placeholder="Search articles…" />
+
       {loading ? (
         <div className="flex justify-center py-12">
           <Spinner className="h-7 w-7" />
         </div>
       ) : articles.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No articles yet. Create one above.</p>
+        <p className="text-sm text-muted-foreground">No articles found.</p>
       ) : (
-        <div className="space-y-3">
-          {articles.map((a) => (
-            <Card key={a.id}>
-              <CardContent className="flex items-start justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-serif font-semibold">{a.title}</span>
-                    <Badge variant={statusVariant(a.status)} className="capitalize">
-                      {a.status}
-                    </Badge>
+        <>
+          <div className="space-y-3">
+            {articles.map((a) => (
+              <Card key={a.id}>
+                <CardContent className="flex items-start justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-serif font-semibold">{a.title}</span>
+                      <Badge variant={statusVariant(a.status)} className="capitalize">
+                        {a.status}
+                      </Badge>
+                    </div>
+                    {a.excerpt ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p> : null}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {a.author ? `${a.author} · ` : ''}/{a.slug}
+                    </p>
                   </div>
-                  {a.excerpt ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p> : null}
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {a.author ? `${a.author} · ` : ''}/{a.slug}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col gap-1">
-                  <Button size="sm" variant="outline" onClick={() => edit(a)}>
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(a)} aria-label="Delete">
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    <Button size="sm" variant="outline" onClick={() => edit(a)}>
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => remove(a)} aria-label="Delete">
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <AdminPager page={meta.page} pages={meta.pages} total={meta.total} onPage={setPage} />
+        </>
       )}
     </div>
   );

@@ -42,7 +42,7 @@ export default function EditSongPage() {
   const load = async () => {
     const [s, c] = await Promise.all([
       apiJson<{ data: AdminSongDetail }>(`/api/admin/songs/${id}`),
-      apiJson<{ data: Category[] }>('/api/admin/categories'),
+      apiJson<{ data: Category[] }>('/api/categories'), // public = all categories (admin list is paginated)
     ]);
     if (s.ok) setSong(s.body.data);
     if (c.ok) setCategories(c.body.data);

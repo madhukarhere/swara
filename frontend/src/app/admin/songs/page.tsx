@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Trash2, Pencil, Music } from 'lucide-react';
 import { apiJson, apiForm } from '@/lib/client-api';
+import { useAdminList } from '@/lib/use-admin-list';
+import { AdminSearch, AdminPager } from '@/components/admin/list-controls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,26 +29,18 @@ interface AdminSong {
 }
 
 export default function AdminSongsPage() {
-  const [songs, setSongs] = useState<AdminSong[]>([]);
+  const { items: songs, meta, loading, search, setPage, setFilter, filters, reload } = useAdminList<AdminSong>('/api/admin/songs', 20);
+
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  const load = async () => {
-    setLoading(true);
-    const [s, c] = await Promise.all([
-      apiJson<{ data: AdminSong[] }>('/api/admin/songs?status=all&limit=100'),
-      apiJson<{ data: Category[] }>('/api/admin/categories'),
-    ]);
-    if (s.ok) setSongs(s.body.data);
-    if (c.ok) setCategories(c.body.data);
-    setLoading(false);
-  };
-
+  // Category dropdown needs ALL categories — use the (unpaginated) public endpoint.
   useEffect(() => {
-    void load();
+    apiJson<{ data: Category[] }>('/api/categories').then((r) => {
+      if (r.ok) setCategories(r.body.data);
+    });
   }, []);
 
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -54,7 +48,6 @@ export default function AdminSongsPage() {
     setSaving(true);
     setMsg(null);
     const fd = new FormData(e.currentTarget);
-    // checkboxes -> only present when checked; normalize to true/false
     fd.set('isFeatured', fd.get('isFeatured') ? 'true' : 'false');
     fd.set('isTop5', fd.get('isTop5') ? 'true' : 'false');
     const r = await apiForm('/api/admin/songs', 'POST', fd);
@@ -63,7 +56,7 @@ export default function AdminSongsPage() {
       setMsg({ type: 'ok', text: 'Song created.' });
       setShowForm(false);
       (e.target as HTMLFormElement).reset();
-      void load();
+      void reload();
     } else {
       setMsg({ type: 'err', text: (r.body as { error?: string }).error || 'Could not create song.' });
     }
@@ -72,7 +65,7 @@ export default function AdminSongsPage() {
   const remove = async (id: string, title: string) => {
     if (!confirm(`Delete “${title}”? This also removes its lyrics and comments.`)) return;
     const r = await apiJson(`/api/admin/songs/${id}`, 'DELETE');
-    if (r.ok) void load();
+    if (r.ok) void reload();
     else setMsg({ type: 'err', text: 'Could not delete song.' });
   };
 
@@ -83,7 +76,7 @@ export default function AdminSongsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-serif text-3xl font-bold">Songs</h1>
-          <p className="text-muted-foreground">{songs.length} total</p>
+          <p className="text-muted-foreground">{meta.total} total</p>
         </div>
         <Button onClick={() => setShowForm((s) => !s)}>
           <Plus className="h-4 w-4" /> New Song
@@ -176,66 +169,83 @@ export default function AdminSongsPage() {
         </Card>
       ) : null}
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <AdminSearch onSearch={search} placeholder="Search songs…" />
+        <Select
+          aria-label="Filter by status"
+          value={filters.status ?? 'all'}
+          onChange={(e) => setFilter('status', e.target.value)}
+          className="w-full sm:w-44"
+        >
+          <option value="all">All statuses</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+        </Select>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-12">
           <Spinner className="h-7 w-7" />
         </div>
       ) : (
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Title</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Plays</th>
-                  <th className="px-4 py-3">Lyrics</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {songs.map((s) => (
-                  <tr key={s.id} className="hover:bg-muted/40">
-                    <td className="px-4 py-3 font-medium">
-                      <span className="flex items-center gap-2">
-                        <Music className="h-4 w-4 text-muted-foreground" />
-                        {s.title}
-                        {s.isTop5 ? <Badge variant="gold">Top 5</Badge> : null}
-                        {s.isFeatured ? <Badge>Featured</Badge> : null}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{catName(s.category)}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant={s.status === 'published' ? 'success' : 'muted'}>{s.status}</Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatNumber(s.playCount)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.lyricsCount ?? 0}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <Link href={`/admin/songs/${s.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Pencil className="h-3.5 w-3.5" /> Edit
-                          </Button>
-                        </Link>
-                        <Button variant="ghost" size="sm" onClick={() => remove(s.id, s.title)} aria-label="Delete">
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {songs.length === 0 ? (
+        <>
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                      No songs yet. Click “New Song” to add one.
-                    </td>
+                    <th className="px-4 py-3">Title</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Plays</th>
+                    <th className="px-4 py-3">Lyrics</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody className="divide-y">
+                  {songs.map((s) => (
+                    <tr key={s.id} className="hover:bg-muted/40">
+                      <td className="px-4 py-3 font-medium">
+                        <span className="flex items-center gap-2">
+                          <Music className="h-4 w-4 text-muted-foreground" />
+                          {s.title}
+                          {s.isTop5 ? <Badge variant="gold">Top 5</Badge> : null}
+                          {s.isFeatured ? <Badge>Featured</Badge> : null}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{catName(s.category)}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={s.status === 'published' ? 'success' : 'muted'}>{s.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{formatNumber(s.playCount)}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{s.lyricsCount ?? 0}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2">
+                          <Link href={`/admin/songs/${s.id}`}>
+                            <Button variant="outline" size="sm">
+                              <Pencil className="h-3.5 w-3.5" /> Edit
+                            </Button>
+                          </Link>
+                          <Button variant="ghost" size="sm" onClick={() => remove(s.id, s.title)} aria-label="Delete">
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {songs.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                        No songs found.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          <AdminPager page={meta.page} pages={meta.pages} total={meta.total} onPage={setPage} />
+        </>
       )}
     </div>
   );
