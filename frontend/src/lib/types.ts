@@ -81,6 +81,31 @@ export interface HomepageData {
   upcomingEvents: { id: string; title: string; slug: string; startDate: string; location?: string | null }[];
 }
 
+export interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  coverUrl?: string | null;
+  author?: string | null;
+  tags: string[];
+  status?: string;
+  publishedAt?: string | null;
+  createdAt?: string | null;
+}
+
+export interface ArticleDetail extends Article {
+  body: string;
+}
+
+export interface QuoteItem {
+  id: string;
+  text: string;
+  author?: string | null;
+  language?: string | null;
+  featured?: boolean;
+}
+
 export function categoryName(c: Category | string | null): string {
   if (!c) return '';
   return typeof c === 'string' ? '' : c.name;

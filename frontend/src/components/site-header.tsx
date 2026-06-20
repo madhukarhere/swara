@@ -4,6 +4,8 @@ import { ThemeToggle } from './theme-toggle';
 const nav = [
   { href: '/', label: 'Home' },
   { href: '/songs', label: 'Songs' },
+  { href: '/articles', label: 'Articles' },
+  { href: '/quotes', label: 'Quotes' },
   { href: '/admin', label: 'Admin' },
 ];
 

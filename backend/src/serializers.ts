@@ -126,3 +126,58 @@ export function serializeCommentAdmin(c: CommentLike & { song?: unknown }) {
     song: c.song && typeof c.song === 'object' ? serializeSong(c.song as SongLike) : c.song ? String(c.song) : null,
   };
 }
+
+interface ArticleLike {
+  _id: unknown;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  body?: string;
+  coverImage?: string;
+  author?: string;
+  tags?: string[];
+  status?: string;
+  publishedAt?: Date;
+  createdAt?: Date;
+}
+
+export function serializeArticle(a: ArticleLike) {
+  return {
+    id: String(a._id),
+    title: a.title,
+    slug: a.slug,
+    excerpt: a.excerpt ?? null,
+    coverUrl: a.coverImage ? publicUrl('article_images', a.coverImage) : null,
+    author: a.author ?? null,
+    tags: a.tags ?? [],
+    status: a.status ?? 'draft',
+    publishedAt: a.publishedAt ?? null,
+    createdAt: a.createdAt ?? null,
+  };
+}
+
+export function serializeArticleDetail(a: ArticleLike) {
+  return { ...serializeArticle(a), body: a.body ?? '' };
+}
+
+interface QuoteLike {
+  _id: unknown;
+  text: string;
+  author?: string;
+  language?: string;
+  mode?: string;
+  isActive?: boolean;
+  createdAt?: Date;
+}
+
+export function serializeQuote(q: QuoteLike) {
+  return {
+    id: String(q._id),
+    text: q.text,
+    author: q.author ?? null,
+    language: q.language ?? null,
+    mode: q.mode ?? 'random',
+    isActive: q.isActive ?? true,
+    createdAt: q.createdAt ?? null,
+  };
+}

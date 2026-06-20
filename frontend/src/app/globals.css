@@ -68,3 +68,46 @@
     border-radius: 9999px;
   }
 }
+
+/* Rendered article body (sanitized HTML) */
+.article-body {
+  line-height: 1.75;
+}
+.article-body p {
+  margin: 0.85rem 0;
+}
+.article-body h2 {
+  font-family: Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1.6rem 0 0.5rem;
+}
+.article-body h3 {
+  font-weight: 700;
+  margin: 1.25rem 0 0.4rem;
+}
+.article-body ul,
+.article-body ol {
+  margin: 0.85rem 0;
+  padding-left: 1.5rem;
+}
+.article-body ul {
+  list-style: disc;
+}
+.article-body ol {
+  list-style: decimal;
+}
+.article-body li {
+  margin: 0.25rem 0;
+}
+.article-body blockquote {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1rem;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+  margin: 1rem 0;
+}
+.article-body a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
