@@ -1,12 +1,8 @@
 import { getHomepage } from '@/lib/api';
-import { SearchBar } from '@/components/search-bar';
-import { SongCard } from '@/components/song-card';
 import { AnnouncementBar } from '@/components/home/announcement-bar';
-import { HeroCarousel } from '@/components/home/hero-carousel';
 import {
   SectionHeading,
-  SongGrid,
-  Top5List,
+  SongList,
   CalendarWidget,
   QuoteCard,
   CategoryChips,
@@ -14,7 +10,7 @@ import {
   MiniContentRow,
 } from '@/components/home/home-sections';
 import { MotifDivider, InstrumentBand } from '@/components/cultural/motif';
-import { DevotionPanel, VeenaBanner } from '@/components/cultural/cultural-image';
+import { DevotionPanel } from '@/components/cultural/cultural-image';
 import { Veena, Diya, Bansuri, Tabla, Lotus } from '@/components/icons/cultural-icons';
 
 export const dynamic = 'force-dynamic';
@@ -40,19 +36,7 @@ export default async function HomePage() {
     <>
       {enabled('announcement') && <AnnouncementBar items={data.announcements} />}
       <div className="container space-y-12 py-8 motif-bg">
-        {enabled('hero') && data.heroSlides.length > 0 ? <HeroCarousel slides={data.heroSlides} /> : null}
-
         <DevotionPanel />
-
-        {enabled('search') ? (
-          <section className="mx-auto max-w-2xl space-y-4 text-center">
-            <h1 className="font-serif text-3xl font-bold sm:text-4xl">Discover devotional music &amp; lyrics</h1>
-            <p className="text-muted-foreground">
-              Keertanas, stotras and bhajans with lyrics in Telugu, Sanskrit, Hindi, English and more.
-            </p>
-            <SearchBar big />
-          </section>
-        ) : null}
 
         <MotifDivider />
 
@@ -72,33 +56,33 @@ export default async function HomePage() {
             {enabled('top5') && data.top5.length > 0 ? (
               <div>
                 <SectionHeading title="Top 5 Songs" icon={<Veena className="h-6 w-6 text-primary" />} />
-                <Top5List songs={data.top5} />
+                <SongList songs={data.top5} numbered limit={5} />
               </div>
             ) : null}
             {enabled('featured') && data.featured.length > 0 ? (
               <div>
                 <SectionHeading title="Featured" href="/songs" icon={<Diya className="h-6 w-6 text-primary" />} />
-                <div className="grid grid-cols-2 gap-4">
-                  {data.featured.slice(0, 4).map((s) => (
-                    <SongCard key={s.id} song={s} />
-                  ))}
-                </div>
+                <SongList songs={data.featured} limit={6} />
               </div>
             ) : null}
           </section>
         ) : null}
 
-        {enabled('recentlyAdded') && data.recentlyAdded.length > 0 ? (
-          <section>
-            <SectionHeading title="Recently Added" href="/songs?sort=latest" icon={<Bansuri className="h-6 w-6 text-primary" />} />
-            <SongGrid songs={data.recentlyAdded} />
-          </section>
-        ) : null}
-
-        {enabled('mostPlayed') && data.mostPlayed.length > 0 ? (
-          <section>
-            <SectionHeading title="Most Played" href="/songs?sort=most_played" icon={<Tabla className="h-6 w-6 text-primary" />} />
-            <SongGrid songs={data.mostPlayed} />
+        {(enabled('recentlyAdded') && data.recentlyAdded.length > 0) ||
+        (enabled('mostPlayed') && data.mostPlayed.length > 0) ? (
+          <section className="grid gap-8 lg:grid-cols-2">
+            {enabled('recentlyAdded') && data.recentlyAdded.length > 0 ? (
+              <div>
+                <SectionHeading title="Recently Added" href="/songs?sort=latest" icon={<Bansuri className="h-6 w-6 text-primary" />} />
+                <SongList songs={data.recentlyAdded} limit={6} />
+              </div>
+            ) : null}
+            {enabled('mostPlayed') && data.mostPlayed.length > 0 ? (
+              <div>
+                <SectionHeading title="Most Played" href="/songs?sort=most_played" icon={<Tabla className="h-6 w-6 text-primary" />} />
+                <SongList songs={data.mostPlayed} numbered limit={6} />
+              </div>
+            ) : null}
           </section>
         ) : null}
 
@@ -111,7 +95,6 @@ export default async function HomePage() {
 
         <section className="space-y-6">
           <MotifDivider />
-          <VeenaBanner />
           <InstrumentBand />
         </section>
 

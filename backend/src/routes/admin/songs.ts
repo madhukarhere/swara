@@ -59,6 +59,7 @@ function serializeAdminSong(song: any) {
 const listQuery = z.object({
   q: z.string().trim().optional(),
   status: z.enum(['draft', 'published', 'all']).default('all'),
+  placement: z.enum(['all', 'featured', 'top5']).default('all'),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -67,9 +68,11 @@ router.get(
   '/',
   validate({ query: listQuery }),
   asyncHandler(async (req, res) => {
-    const { q, status, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
+    const { q, status, placement, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
     const filter: Record<string, unknown> = {};
     if (status !== 'all') filter.status = status;
+    if (placement === 'featured') filter.isFeatured = true;
+    else if (placement === 'top5') filter.isTop5 = true;
     if (q) filter.title = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
     const [items, total] = await Promise.all([
@@ -88,14 +91,20 @@ router.get(
     ]);
     const countMap = new Map(counts.map((c: { _id: unknown; n: number }) => [String(c._id), c.n]));
 
-    res.json(
-      paginate(
+    const [featuredCount, top5Count] = await Promise.all([
+      Song.countDocuments({ isFeatured: true }),
+      Song.countDocuments({ isTop5: true }),
+    ]);
+
+    res.json({
+      ...paginate(
         items.map((s) => ({ ...serializeAdminSong(s), lyricsCount: countMap.get(String(s._id)) ?? 0 })),
         total,
         page,
         limit,
       ),
-    );
+      counts: { featured: featuredCount, top5: top5Count },
+    });
   }),
 );
 
@@ -189,6 +198,32 @@ router.put(
 
     await song.save();
     await writeAudit({ req, action: 'update', entity: 'Song', entityId: String(song._id) });
+    res.json({ data: serializeAdminSong(song.toObject()) });
+  }),
+);
+
+/* PATCH /api/admin/songs/:id/flags — quick toggle of homepage placement flags */
+const flagsUpdate = z.object({
+  isFeatured: z.boolean().optional(),
+  isTop5: z.boolean().optional(),
+  top5Order: z.coerce.number().int().optional(),
+});
+
+router.patch(
+  '/:id/flags',
+  validate({ body: flagsUpdate }),
+  asyncHandler(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) throw new AppError(404, 'Song not found');
+    const song = await Song.findById(req.params.id);
+    if (!song) throw new AppError(404, 'Song not found');
+
+    const data = req.body as z.infer<typeof flagsUpdate>;
+    if (data.isFeatured !== undefined) song.isFeatured = data.isFeatured;
+    if (data.isTop5 !== undefined) song.isTop5 = data.isTop5;
+    if (data.top5Order !== undefined) song.top5Order = data.top5Order;
+
+    await song.save();
+    await writeAudit({ req, action: 'flags', entity: 'Song', entityId: String(song._id) });
     res.json({ data: serializeAdminSong(song.toObject()) });
   }),
 );

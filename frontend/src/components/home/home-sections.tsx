@@ -34,30 +34,41 @@ export function SongGrid({ songs }: { songs: Song[] }) {
   );
 }
 
-export function Top5List({ songs }: { songs: Song[] }) {
-  if (!songs.length) return null;
+/**
+ * Compact list of songs — shared design for Top 5, Featured, Recently Added and
+ * Most Played sections. `numbered` shows a rank column (use for ranked lists);
+ * `limit` caps how many rows render.
+ */
+export function SongList({ songs, numbered = false, limit }: { songs: Song[]; numbered?: boolean; limit?: number }) {
+  const list = typeof limit === 'number' ? songs.slice(0, limit) : songs;
+  if (!list.length) return null;
   return (
     <Card>
       <CardContent className="divide-y p-2">
-        {songs.slice(0, 5).map((s, idx) => (
-          <Link key={s.id} href={`/songs/${s.slug}`} className="group flex items-center gap-3 rounded-lg p-2 hover:bg-muted">
-            <span className="w-6 text-center font-serif text-xl font-bold text-primary/70">{idx + 1}</span>
-            <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-muted">
-              {s.coverUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.coverUrl} alt="" className="h-full w-full object-cover" />
-              ) : null}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate font-medium">{s.title}</span>
-              <span className="block truncate text-xs text-muted-foreground">{categoryName(s.category) || s.singer || ''}</span>
-            </span>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Play className="h-3 w-3" />
-              {formatNumber(s.playCount)}
-            </span>
-          </Link>
-        ))}
+        {list.map((s, idx) => {
+          const Ic = iconForKey(s.id);
+          return (
+            <Link key={s.id} href={`/songs/${s.slug}`} className="group flex items-center gap-3 rounded-lg p-2 hover:bg-muted">
+              {numbered ? <span className="w-6 shrink-0 text-center font-serif text-xl font-bold text-primary/70">{idx + 1}</span> : null}
+              <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+                {s.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.coverUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <Ic className="h-6 w-6 text-primary/40" />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium group-hover:text-primary">{s.title}</span>
+                <span className="block truncate text-xs text-muted-foreground">{categoryName(s.category) || s.singer || ''}</span>
+              </span>
+              <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                <Play className="h-3 w-3" />
+                {formatNumber(s.playCount)}
+              </span>
+            </Link>
+          );
+        })}
       </CardContent>
     </Card>
   );

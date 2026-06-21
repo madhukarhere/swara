@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { LayoutDashboard, Music, FolderTree, MessageSquare, CalendarDays, FileText, Quote, Megaphone, Inbox, LogOut } from 'lucide-react';
+import { LayoutDashboard, Music, Star, FolderTree, MessageSquare, CalendarDays, FileText, Quote, Megaphone, Inbox, LogOut } from 'lucide-react';
 import { adminMe, adminLogout } from '@/lib/client-api';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/songs', label: 'Songs', icon: Music },
+  { href: '/admin/featured', label: 'Featured', icon: Star },
   { href: '/admin/categories', label: 'Categories', icon: FolderTree },
   { href: '/admin/articles', label: 'Articles', icon: FileText },
   { href: '/admin/quotes', label: 'Quotes', icon: Quote },
