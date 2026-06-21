@@ -41,6 +41,13 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().default('Vijayavipanchi <no-reply@vijayavipanchi.org>'),
+
+  // ---- Cloudinary (optional): when all three are set, uploads + seed media go to
+  // Cloudinary instead of local disk (required for persistent media on hosts with an
+  // ephemeral filesystem, e.g. Render's free tier). ----
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 const parsed = schema.parse(process.env);
@@ -54,6 +61,7 @@ export const env = {
   isProd: parsed.NODE_ENV === 'production',
   isTest: parsed.NODE_ENV === 'test',
   isDev: parsed.NODE_ENV === 'development',
+  useCloudinary: Boolean(parsed.CLOUDINARY_CLOUD_NAME && parsed.CLOUDINARY_API_KEY && parsed.CLOUDINARY_API_SECRET),
 };
 
 export type Env = typeof env;

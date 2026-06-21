@@ -159,6 +159,15 @@ router.get(
     const song = await findSong(req.params.id);
     if (!song || !song.audioFile) throw new AppError(404, 'Audio not found for this song');
 
+    // Cloudinary (or any absolute URL): count the play, then redirect to the CDN,
+    // which serves the audio with its own range-request support.
+    if (/^https?:\/\//i.test(song.audioFile)) {
+      Song.updateOne({ _id: song._id }, { $inc: { playCount: 1 } }).catch(() => undefined);
+      SongPlay.create({ song: song._id, dateBucket: dateBucket(), ipHash: hashIp(req.ip) }).catch(() => undefined);
+      res.redirect(302, song.audioFile);
+      return;
+    }
+
     const filePath = storagePath('songs', path.basename(song.audioFile));
     if (!fs.existsSync(filePath)) throw new AppError(404, 'Audio file is missing on disk');
 

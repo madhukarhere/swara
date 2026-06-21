@@ -22,10 +22,14 @@ export const logger = winston.createLogger({
   ],
 });
 
-if (env.isDev) {
+// Console output in dev (pretty) and prod (so hosts like Render capture logs from
+// stdout — file logs live on an ephemeral disk there). Silent in tests.
+if (!env.isTest) {
   logger.add(
     new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+      format: env.isProd
+        ? winston.format.simple()
+        : winston.format.combine(winston.format.colorize(), winston.format.simple()),
     }),
   );
 }

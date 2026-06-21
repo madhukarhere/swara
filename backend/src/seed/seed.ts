@@ -381,10 +381,10 @@ async function run(): Promise<void> {
   for (let idx = 0; idx < SONGS.length; idx += 1) {
     const s = SONGS[idx];
     const slug = slugify(s.title);
-    const cover = `cover-${slug}.svg`;
-    const audio = `audio-${slug}.wav`;
-    writeCoverSvg(cover, s.coverMain, s.coverSub, s.hue);
-    const duration = writeToneWav('songs', audio, s.freq, s.seconds ?? 9);
+    const seconds = s.seconds ?? 9;
+    const coverRef = await writeCoverSvg(`cover-${slug}.svg`, s.coverMain, s.coverSub, s.hue);
+    const audioRef = await writeToneWav('songs', `audio-${slug}.wav`, s.freq, seconds);
+    const duration = Math.round(seconds);
 
     const song = await Song.create({
       title: s.title,
@@ -394,8 +394,8 @@ async function run(): Promise<void> {
       composer: s.composer,
       lyricist: s.lyricist,
       duration,
-      audioFile: audio,
-      coverImage: cover,
+      audioFile: audioRef,
+      coverImage: coverRef,
       playCount: s.playCount,
       downloadCount: Math.floor(s.playCount / 12),
       isFeatured: Boolean(s.isFeatured),
@@ -475,34 +475,34 @@ async function run(): Promise<void> {
   // Festival banner (today's festival if any, else a generic welcome banner)
   const bannerTitle = todayFestival ? todayFestival.name : 'Hari Om — Welcome';
   const bannerKey = (todayFestival?.key ?? 'generic') as never;
-  writeBannerSvg('banners', 'festival.svg', bannerTitle, 'Wishing you peace, music and devotion', 32);
-  await Banner.create({ festivalKey: bannerKey, title: bannerTitle, subtitle: 'Wishing you peace, music and devotion', image: 'festival.svg', isActive: true, order: 0 });
+  const festivalImage = await writeBannerSvg('banners', 'festival.svg', bannerTitle, 'Wishing you peace, music and devotion', 32);
+  await Banner.create({ festivalKey: bannerKey, title: bannerTitle, subtitle: 'Wishing you peace, music and devotion', image: festivalImage, isActive: true, order: 0 });
 
   // Hero slides
-  writeBannerSvg('banners', 'hero-1.svg', 'Vijayavipanchi', 'Cultural music & multi-language lyrics', 28);
-  writeBannerSvg('banners', 'hero-2.svg', 'Annamacharya Sankeertanalu', 'Timeless keertanas, many languages', 320);
+  const hero1Image = await writeBannerSvg('banners', 'hero-1.svg', 'Vijayavipanchi', 'Cultural music & multi-language lyrics', 28);
+  const hero2Image = await writeBannerSvg('banners', 'hero-2.svg', 'Annamacharya Sankeertanalu', 'Timeless keertanas, many languages', 320);
 
   // One video, article, event to populate the homepage sections
-  writeBannerSvg('videos', 'video-thumb-1.svg', 'Brahmam Okkate', 'Annamacharya Keerthana', 30);
+  const videoThumb = await writeBannerSvg('videos', 'video-thumb-1.svg', 'Brahmam Okkate', 'Annamacharya Keerthana', 30);
   await Video.create({
     title: 'Brahmam Okkate — Annamacharya Keerthana',
     slug: 'brahmam-okkate-live',
     description: 'A soulful rendition of the timeless keertana.',
     externalUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'video-thumb-1.svg',
+    thumbnail: videoThumb,
     category: 'Keerthana',
     isFeatured: true,
     status: 'published',
     publishedAt: new Date(),
   });
 
-  writeBannerSvg('article_images', 'article-1.svg', 'Annamacharya', 'The Timeless Wisdom of his Sankeertanas', 18);
+  const articleCover = await writeBannerSvg('article_images', 'article-1.svg', 'Annamacharya', 'The Timeless Wisdom of his Sankeertanas', 18);
   await Article.create({
     title: 'The Timeless Wisdom of Annamacharya’s Sankeertanas',
     slug: 'timeless-wisdom-of-annamacharya',
     excerpt: 'How a 15th-century poet-saint distilled the deepest truths of Vedanta into singable Telugu verses.',
     body: '<p>Tallapaka Annamacharya composed an estimated 32,000 sankeertanas in praise of Lord Venkateswara...</p><p>His verse <em>Brahmam Okkate</em> proclaims the oneness of the divine across all beings.</p>',
-    coverImage: 'article-1.svg',
+    coverImage: articleCover,
     author: 'Editorial',
     tags: ['annamacharya', 'history'],
     status: 'published',
@@ -525,8 +525,8 @@ async function run(): Promise<void> {
     singleton: 'singleton',
     sections: DEFAULT_SECTIONS,
     heroSlides: [
-      { title: 'Welcome to Vijayavipanchi', subtitle: 'Devotional music & multi-language lyrics', image: 'hero-1.svg', link: '/songs' },
-      { title: 'Annamacharya Sankeertanalu', subtitle: 'Explore timeless keertanas', image: 'hero-2.svg', link: '/songs?category=annamacharya-sankeertanalu' },
+      { title: 'Welcome to Vijayavipanchi', subtitle: 'Devotional music & multi-language lyrics', image: hero1Image, link: '/songs' },
+      { title: 'Annamacharya Sankeertanalu', subtitle: 'Explore timeless keertanas', image: hero2Image, link: '/songs?category=annamacharya-sankeertanalu' },
     ],
     top5Songs: top5.slice(0, 5),
     featuredSongs: featured,
