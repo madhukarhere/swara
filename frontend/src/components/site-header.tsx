@@ -7,6 +7,7 @@ const nav = [
   { href: '/songs', label: 'Songs' },
   { href: '/articles', label: 'Articles' },
   { href: '/quotes', label: 'Quotes' },
+  { href: '/contribute', label: 'Contribute' },
   { href: '/admin', label: 'Admin' },
 ];
 
