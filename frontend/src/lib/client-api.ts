@@ -54,4 +54,5 @@ export async function apiForm<T = unknown>(
 export const adminLogin = (username: string, password: string) =>
   apiJson<{ admin?: { username: string }; error?: string }>('/api/admin/login', 'POST', { username, password });
 export const adminLogout = () => apiJson('/api/admin/logout', 'POST');
-export const adminMe = () => apiJson<{ admin?: { username: string; email: string; role: string } }>('/api/admin/me');
+export const adminMe = () =>
+  apiJson<{ admin?: { id: string; username: string; email: string; role: string; lastLoginAt?: string | null } }>('/api/admin/me');

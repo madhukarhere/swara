@@ -12,6 +12,7 @@ import publicQuotes from './public/quotes';
 import publicContact from './public/contact';
 
 import adminAuth from './admin/auth';
+import adminUsers from './admin/users';
 import adminSongs from './admin/songs';
 import adminLyrics from './admin/lyrics';
 import adminCategories from './admin/categories';
@@ -42,6 +43,7 @@ export function buildApiRouter(): Router {
   const admin = Router();
   admin.use(requireCsrf);
   admin.use('/', adminAuth);
+  admin.use('/users', requireAdmin, adminUsers);
   admin.use('/songs', requireAdmin, adminSongs);
   admin.use('/lyrics', requireAdmin, adminLyrics);
   admin.use('/categories', requireAdmin, adminCategories);

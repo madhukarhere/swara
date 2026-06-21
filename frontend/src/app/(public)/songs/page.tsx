@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { getSongs, getCategories } from '@/lib/api';
 import { SongFilters } from '@/components/song-filters';
-import { SongGrid } from '@/components/home/home-sections';
+import { SongGrid, SongList } from '@/components/home/home-sections';
+import { SongResults } from '@/components/song-results';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
+
+const PAGE_SIZE = 5;
 
 export default async function SongsPage({
   searchParams,
@@ -19,7 +22,7 @@ export default async function SongsPage({
   }
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1);
   params.set('page', String(page));
-  params.set('limit', '15');
+  params.set('limit', String(PAGE_SIZE));
 
   let songs;
   let categories;
@@ -55,25 +58,38 @@ export default async function SongsPage({
           No songs found. Try a different search or filter.
         </div>
       ) : (
-        <SongGrid songs={data} />
+        <SongResults grid={<SongGrid songs={data} />} list={<SongList songs={data} />} />
       )}
 
       {meta.pages > 1 ? (
-        <div className="flex items-center justify-center gap-3 pt-4">
-          {page > 1 ? (
-            <Link href={linkFor(page - 1)} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-              ← Previous
+        <nav className="flex flex-wrap items-center justify-center gap-1.5 pt-4" aria-label="Pagination">
+          <Link
+            href={linkFor(page - 1)}
+            aria-disabled={page <= 1}
+            tabIndex={page <= 1 ? -1 : undefined}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), page <= 1 && 'pointer-events-none opacity-50')}
+          >
+            ← Prev
+          </Link>
+          {Array.from({ length: meta.pages }, (_, i) => i + 1).map((p) => (
+            <Link
+              key={p}
+              href={linkFor(p)}
+              aria-current={p === page ? 'page' : undefined}
+              className={cn(buttonVariants({ variant: p === page ? 'default' : 'outline', size: 'sm' }), 'min-w-9')}
+            >
+              {p}
             </Link>
-          ) : null}
-          <span className="text-sm text-muted-foreground">
-            Page {meta.page} of {meta.pages}
-          </span>
-          {page < meta.pages ? (
-            <Link href={linkFor(page + 1)} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-              Next →
-            </Link>
-          ) : null}
-        </div>
+          ))}
+          <Link
+            href={linkFor(page + 1)}
+            aria-disabled={page >= meta.pages}
+            tabIndex={page >= meta.pages ? -1 : undefined}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), page >= meta.pages && 'pointer-events-none opacity-50')}
+          >
+            Next →
+          </Link>
+        </nav>
       ) : null}
     </div>
   );
