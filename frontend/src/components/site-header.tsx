@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from './theme-toggle';
-import { Om } from '@/components/icons/cultural-icons';
+import { Veena } from '@/components/icons/cultural-icons';
 
 const nav = [
   { href: '/', label: 'Home' },
@@ -9,7 +9,6 @@ const nav = [
   { href: '/quotes', label: 'Quotes' },
   { href: '/contribute', label: 'Contribute' },
   { href: '/contact', label: 'Contact' },
-  { href: '/admin', label: 'Admin' },
 ];
 
 export function SiteHeader() {
@@ -18,7 +17,7 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center gap-2">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg temple-gradient text-white shadow-sm">
-            <Om className="h-5 w-5" />
+            <Veena className="h-6 w-6" />
           </span>
           <span className="font-serif text-xl font-bold tracking-tight">Vijayavipanchi</span>
         </Link>
