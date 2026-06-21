@@ -6,19 +6,11 @@ import { UtilityActions } from '@/components/song/utility-actions';
 import { CommentSection } from '@/components/song/comment-section';
 import { SongGrid, SectionHeading } from '@/components/home/home-sections';
 import { Badge } from '@/components/ui/badge';
+import { iconForKey } from '@/components/icons/cultural-icons';
 import { categoryName, categorySlug } from '@/lib/types';
 import { formatDuration, formatNumber } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
-
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4 border-b border-dashed py-1.5">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">{value}</dd>
-    </div>
-  );
-}
 
 export default async function SongDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -26,9 +18,17 @@ export default async function SongDetailPage({ params }: { params: Promise<{ slu
   if (!song) notFound();
 
   const cat = categoryName(song.category);
+  const Fallback = iconForKey(song.id);
+
+  const meta = [
+    { label: 'Composer', value: song.composer },
+    { label: 'Lyricist', value: song.lyricist },
+    { label: 'Duration', value: song.duration ? formatDuration(song.duration) : null },
+    { label: 'Languages', value: song.languages.length ? song.languages.join(', ') : null },
+  ].filter((m) => m.value);
 
   return (
-    <div className="container space-y-10 py-8">
+    <div className="container space-y-8 py-8">
       <nav className="text-sm text-muted-foreground">
         <Link href="/songs" className="hover:text-foreground">
           Songs
@@ -36,40 +36,51 @@ export default async function SongDetailPage({ params }: { params: Promise<{ slu
         / <span className="text-foreground">{song.title}</span>
       </nav>
 
-      <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
-        <div className="space-y-4">
-          <div className="aspect-square overflow-hidden rounded-2xl border bg-muted shadow-sm">
-            {song.coverUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={song.coverUrl} alt={song.title} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full items-center justify-center temple-gradient font-serif text-6xl text-white">ॐ</div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <h1 className="font-serif text-3xl font-bold leading-tight">{song.title}</h1>
+      {/* Compact banner — small icon/thumbnail on the left, song name on the right */}
+      <div className="flex items-center gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl temple-gradient text-white sm:h-20 sm:w-20">
+          {song.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={song.coverUrl} alt={song.title} className="h-full w-full object-cover" />
+          ) : (
+            <Fallback className="h-8 w-8" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="font-serif text-2xl font-bold leading-tight sm:text-3xl">{song.title}</h1>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             {cat ? (
               <Link href={`/songs?category=${categorySlug(song.category)}`}>
                 <Badge>{cat}</Badge>
               </Link>
             ) : null}
-            <dl className="grid grid-cols-1 gap-0.5 pt-2 text-sm">
-              {song.singer ? <Meta label="Singer" value={song.singer} /> : null}
-              {song.composer ? <Meta label="Composer" value={song.composer} /> : null}
-              {song.lyricist ? <Meta label="Lyricist" value={song.lyricist} /> : null}
-              {song.duration ? <Meta label="Duration" value={formatDuration(song.duration)} /> : null}
-              <Meta label="Plays" value={formatNumber(song.playCount)} />
-              {song.languages.length > 0 ? <Meta label="Languages" value={song.languages.join(', ')} /> : null}
-            </dl>
+            {song.singer ? <span>{song.singer}</span> : null}
+            <span>{formatNumber(song.playCount)} plays</span>
           </div>
-          <UtilityActions songId={song.id} title={song.title} />
-        </div>
-
-        <div className="space-y-8">
-          <SongExperience songId={song.id} audioUrl={song.audioUrl ?? null} duration={song.duration ?? null} lyrics={song.lyrics} />
-          <CommentSection songId={song.id} />
         </div>
       </div>
+
+      {/* Meta + utility actions */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        {meta.length ? (
+          <dl className="flex flex-wrap gap-x-6 gap-y-1.5 text-sm">
+            {meta.map((m) => (
+              <div key={m.label} className="flex gap-1.5">
+                <dt className="text-muted-foreground">{m.label}:</dt>
+                <dd className="font-medium">{m.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <span />
+        )}
+        <UtilityActions songId={song.id} title={song.title} />
+      </div>
+
+      {/* Player + multi-language lyrics (full width) */}
+      <SongExperience songId={song.id} audioUrl={song.audioUrl ?? null} duration={song.duration ?? null} lyrics={song.lyrics} />
+
+      <CommentSection songId={song.id} />
 
       {song.related.length > 0 ? (
         <section>
