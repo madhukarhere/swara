@@ -20,7 +20,7 @@ export function SiteFooter() {
             <span className="font-serif text-base text-foreground">Vijayavipanchi</span>
             <span>· Cultural Music &amp; Lyrics Portal</span>
           </p>
-          <nav className="flex gap-4">
+          <nav className="flex flex-wrap justify-center gap-4">
             <Link href="/songs" className="hover:text-foreground">
               Songs
             </Link>
@@ -29,6 +29,12 @@ export function SiteFooter() {
             </Link>
             <Link href="/quotes" className="hover:text-foreground">
               Quotes
+            </Link>
+            <Link href="/contribute" className="hover:text-foreground">
+              Contribute
+            </Link>
+            <Link href="/contact" className="hover:text-foreground">
+              Contact
             </Link>
             <Link href="/admin" className="hover:text-foreground">
               Admin

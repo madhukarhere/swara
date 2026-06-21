@@ -37,3 +37,4 @@ export {
   AuditLog,
   type IAuditLog,
 } from './analytics';
+export { ContactMessage, type IContactMessage, type ContactCategory } from './ContactMessage';

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { LayoutDashboard, Music, FolderTree, MessageSquare, CalendarDays, FileText, Quote, Megaphone, LogOut } from 'lucide-react';
+import { LayoutDashboard, Music, FolderTree, MessageSquare, CalendarDays, FileText, Quote, Megaphone, Inbox, LogOut } from 'lucide-react';
 import { adminMe, adminLogout } from '@/lib/client-api';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -19,6 +19,7 @@ const NAV = [
   { href: '/admin/events', label: 'Events', icon: CalendarDays },
   { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/admin/comments', label: 'Comments', icon: MessageSquare },
+  { href: '/admin/contact', label: 'Contact', icon: Inbox },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -9,6 +9,7 @@ import publicCaptcha from './public/captcha';
 import publicHomepage from './public/homepage';
 import publicArticles from './public/articles';
 import publicQuotes from './public/quotes';
+import publicContact from './public/contact';
 
 import adminAuth from './admin/auth';
 import adminSongs from './admin/songs';
@@ -19,6 +20,7 @@ import adminEvents from './admin/events';
 import adminArticles from './admin/articles';
 import adminQuotes from './admin/quotes';
 import adminAnnouncements from './admin/announcements';
+import adminContact from './admin/contact';
 import adminDashboard from './admin/dashboard';
 
 export function buildApiRouter(): Router {
@@ -34,6 +36,7 @@ export function buildApiRouter(): Router {
   api.use('/homepage', publicHomepage);
   api.use('/articles', publicArticles);
   api.use('/quotes', publicQuotes);
+  api.use('/contact', publicContact);
 
   // ---- Admin (CSRF on mutations; auth on everything except login/csrf) ----
   const admin = Router();
@@ -47,6 +50,7 @@ export function buildApiRouter(): Router {
   admin.use('/articles', requireAdmin, adminArticles);
   admin.use('/quotes', requireAdmin, adminQuotes);
   admin.use('/announcements', requireAdmin, adminAnnouncements);
+  admin.use('/contact', requireAdmin, adminContact);
   admin.use('/dashboard', requireAdmin, adminDashboard);
   api.use('/admin', admin);
 

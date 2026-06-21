@@ -33,6 +33,14 @@ const schema = z.object({
   DATA_DIR: z.string().default('../data'),
   LOG_DIR: z.string().default('../logs'),
   MAX_UPLOAD_MB: z.coerce.number().int().positive().default(50),
+
+  // ---- Email (SMTP) for admin replies; optional — falls back to logging in dev ----
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: boolish(false),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default('Vijayavipanchi <no-reply@vijayavipanchi.org>'),
 });
 
 const parsed = schema.parse(process.env);
