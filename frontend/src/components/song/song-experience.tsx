@@ -165,7 +165,7 @@ export function SongExperience({
               </Tabs>
             ) : (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <Select value={leftLang} onChange={(e) => setLeftLang(e.target.value)}>
                     {lyrics.map((l) => (
                       <option key={l.id} value={l.languageCode}>
@@ -181,7 +181,7 @@ export function SongExperience({
                     ))}
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
                     <Badge variant="muted" className="mb-2">
                       {byCode(leftLang)?.language}
