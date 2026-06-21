@@ -9,9 +9,9 @@ async function main(): Promise<void> {
   await connectDB();
   const app = createApp();
   app.listen(env.PORT, () => {
-    logger.info(`Swara API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
+    logger.info(`Vijayavipanchi API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
     // eslint-disable-next-line no-console
-    console.log(`\n  ➜  Swara API  http://localhost:${env.PORT}\n`);
+    console.log(`\n  ➜  Vijayavipanchi API  http://localhost:${env.PORT}\n`);
   });
 }
 

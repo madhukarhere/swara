@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, '../frontend/public/cultural');
 fs.mkdirSync(OUT, { recursive: true });
 
-const UA = 'SwaraPortal/1.0 (local cultural-music demo; contact: admin@swara.local)';
+const UA = 'VijayavipanchiPortal/1.0 (local cultural-music demo; contact: admin@swara.local)';
 
 function getJson(url) {
   return new Promise((res, rej) => {

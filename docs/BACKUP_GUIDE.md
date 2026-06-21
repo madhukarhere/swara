@@ -1,6 +1,6 @@
-# BACKUP GUIDE — Swara
+# BACKUP GUIDE — Vijayavipanchi
 
-Swara keeps **everything on the local disk**: data in MongoDB and media files under `data/`.
+Vijayavipanchi keeps **everything on the local disk**: data in MongoDB and media files under `data/`.
 A complete backup therefore needs both the database dump and the media tree.
 
 ## What to back up
@@ -27,7 +27,7 @@ This runs `scripts/backup.mjs`, which:
 
 Output example:
 ```
-Swara backup → /…/data/backups/2026-06-17T08-36-26-712Z
+Vijayavipanchi backup → /…/data/backups/2026-06-17T08-36-26-712Z
   ✓ database dumped
   ✓ media copied (19 files)
 Restore DB with:  mongorestore --uri "<uri>" --drop /…/db

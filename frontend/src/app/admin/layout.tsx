@@ -86,7 +86,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="hidden w-60 flex-col border-r bg-card p-4 sm:flex">
         <Link href="/admin" className="mb-6 flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg temple-gradient font-serif text-white">ॐ</span>
-          <span className="font-serif text-lg font-bold">Swara Admin</span>
+          <span className="font-serif text-lg font-bold">Vijayavipanchi Admin</span>
         </Link>
         <nav className="flex flex-1 flex-col gap-1">
           <NavLinks />
@@ -98,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div className="flex flex-1 flex-col">
         <header className="flex h-16 items-center justify-between gap-3 border-b bg-card px-4 sm:px-6">
-          <span className="font-serif font-bold sm:hidden">Swara Admin</span>
+          <span className="font-serif font-bold sm:hidden">Vijayavipanchi Admin</span>
           <div className="ml-auto flex items-center gap-3 text-sm text-muted-foreground">
             <span className="hidden sm:inline">
               Signed in as <b className="text-foreground">{username}</b>

@@ -18,7 +18,7 @@ export function SiteHeader() {
           <span className="flex h-9 w-9 items-center justify-center rounded-lg temple-gradient text-white shadow-sm">
             <Om className="h-5 w-5" />
           </span>
-          <span className="font-serif text-xl font-bold tracking-tight">Swara</span>
+          <span className="font-serif text-xl font-bold tracking-tight">Vijayavipanchi</span>
         </Link>
         <nav className="flex items-center gap-0.5 sm:gap-1">
           {nav.map((n) => (

@@ -291,7 +291,7 @@ router.get(
         languageCode: l.languageCode,
         content: l.content,
       })),
-      siteName: 'Swara',
+      siteName: 'Vijayavipanchi',
     });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${song.slug || 'lyrics'}.pdf"`);

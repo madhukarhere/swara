@@ -2,7 +2,7 @@
   "name": "swara-portal",
   "version": "0.1.0",
   "private": true,
-  "description": "Swara - Cultural Music & Lyrics Portal (Phase 1: foundation + Songs module)",
+  "description": "Vijayavipanchi - Cultural Music & Lyrics Portal (Phase 1: foundation + Songs module)",
   "scripts": {
     "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install",
     "setup": "npm run install:all && npm run fetch-fonts",

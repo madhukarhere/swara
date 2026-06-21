@@ -36,7 +36,7 @@ const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const outDir = path.join(DATA_DIR, 'backups', stamp);
 fs.mkdirSync(path.join(outDir, 'db'), { recursive: true });
 
-console.log(`Swara backup → ${outDir}`);
+console.log(`Vijayavipanchi backup → ${outDir}`);
 
 // 1) Database dump
 try {

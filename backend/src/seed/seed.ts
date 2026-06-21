@@ -453,7 +453,7 @@ async function run(): Promise<void> {
 
   // Announcement
   await Announcement.create({
-    message: '🎵 Welcome to Swara — new keertanas and multi-language lyrics are added regularly.',
+    message: '🎵 Welcome to Vijayavipanchi — new keertanas and multi-language lyrics are added regularly.',
     isActive: true,
     order: 0,
   });
@@ -479,7 +479,7 @@ async function run(): Promise<void> {
   await Banner.create({ festivalKey: bannerKey, title: bannerTitle, subtitle: 'Wishing you peace, music and devotion', image: 'festival.svg', isActive: true, order: 0 });
 
   // Hero slides
-  writeBannerSvg('banners', 'hero-1.svg', 'Swara', 'Cultural music & multi-language lyrics', 28);
+  writeBannerSvg('banners', 'hero-1.svg', 'Vijayavipanchi', 'Cultural music & multi-language lyrics', 28);
   writeBannerSvg('banners', 'hero-2.svg', 'Annamacharya Sankeertanalu', 'Timeless keertanas, many languages', 320);
 
   // One video, article, event to populate the homepage sections
@@ -525,7 +525,7 @@ async function run(): Promise<void> {
     singleton: 'singleton',
     sections: DEFAULT_SECTIONS,
     heroSlides: [
-      { title: 'Welcome to Swara', subtitle: 'Devotional music & multi-language lyrics', image: 'hero-1.svg', link: '/songs' },
+      { title: 'Welcome to Vijayavipanchi', subtitle: 'Devotional music & multi-language lyrics', image: 'hero-1.svg', link: '/songs' },
       { title: 'Annamacharya Sankeertanalu', subtitle: 'Explore timeless keertanas', image: 'hero-2.svg', link: '/songs?category=annamacharya-sankeertanalu' },
     ],
     top5Songs: top5.slice(0, 5),

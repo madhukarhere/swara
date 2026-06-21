@@ -120,7 +120,7 @@ export default function AdminAnnouncementsPage() {
                 onChange={(e) => set('message', e.target.value)}
                 required
                 maxLength={500}
-                placeholder="🎵 Welcome to Swara — new keertanas added regularly."
+                placeholder="🎵 Welcome to Vijayavipanchi — new keertanas added regularly."
               />
               <p className="text-xs text-muted-foreground">Emoji are welcome. Shown in the homepage announcement bar.</p>
             </div>

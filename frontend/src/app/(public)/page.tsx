@@ -26,7 +26,7 @@ export default async function HomePage() {
   } catch {
     return (
       <div className="container py-24 text-center">
-        <h1 className="font-serif text-2xl font-bold">Swara is starting up…</h1>
+        <h1 className="font-serif text-2xl font-bold">Vijayavipanchi is starting up…</h1>
         <p className="mt-2 text-muted-foreground">
           Could not reach the API. Make sure the backend is running on port 4000 and the database is seeded.
         </p>

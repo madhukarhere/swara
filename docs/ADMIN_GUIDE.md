@@ -1,4 +1,4 @@
-# ADMIN GUIDE — Swara
+# ADMIN GUIDE — Vijayavipanchi
 
 The admin panel lives at **`/admin`**. Public visitors never need to log in; only admins do.
 

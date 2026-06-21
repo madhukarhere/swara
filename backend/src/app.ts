@@ -35,7 +35,7 @@ export function createApp(): Express {
 
   app.use('/api', buildApiRouter());
 
-  app.get('/', (_req, res) => res.json({ name: 'Swara — Cultural Music & Lyrics Portal API', status: 'ok' }));
+  app.get('/', (_req, res) => res.json({ name: 'Vijayavipanchi — Cultural Music & Lyrics Portal API', status: 'ok' }));
 
   app.use(notFound);
   app.use(errorHandler);

@@ -1,4 +1,4 @@
-# Swara — Cultural Music & Lyrics Portal
+# Vijayavipanchi — Cultural Music & Lyrics Portal
 
 A locally-deployable portal for devotional/cultural music with **multi-language lyrics**,
 an audio player, moderated comments with a local CAPTCHA, and a full admin panel.

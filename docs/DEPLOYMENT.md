@@ -1,6 +1,6 @@
-# DEPLOYMENT — Swara
+# DEPLOYMENT — Vijayavipanchi
 
-Run Swara in production on a single Linux host (Ubuntu 24.04) without Docker. The same
+Run Vijayavipanchi in production on a single Linux host (Ubuntu 24.04) without Docker. The same
 two-process model applies on Windows 11 (use NSSM or Task Scheduler instead of systemd).
 
 ## Topology
@@ -56,7 +56,7 @@ API_INTERNAL_URL=http://127.0.0.1:4000
 `/etc/systemd/system/swara-api.service`:
 ```ini
 [Unit]
-Description=Swara API
+Description=Vijayavipanchi API
 After=network.target mongod.service
 
 [Service]
@@ -74,7 +74,7 @@ WantedBy=multi-user.target
 `/etc/systemd/system/swara-web.service`:
 ```ini
 [Unit]
-Description=Swara Web
+Description=Vijayavipanchi Web
 After=network.target swara-api.service
 
 [Service]

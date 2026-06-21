@@ -17,7 +17,7 @@ export function SiteFooter() {
         <div className="flex flex-col items-center justify-between gap-3 text-sm text-muted-foreground sm:flex-row">
           <p className="flex items-center gap-2">
             <Om className="h-5 w-5 text-primary" />
-            <span className="font-serif text-base text-foreground">Swara</span>
+            <span className="font-serif text-base text-foreground">Vijayavipanchi</span>
             <span>· Cultural Music &amp; Lyrics Portal</span>
           </p>
           <nav className="flex gap-4">

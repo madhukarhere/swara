@@ -1,6 +1,6 @@
-# INSTALL — Swara
+# INSTALL — Vijayavipanchi
 
-Install and run Swara locally on **Ubuntu 24.04**, **Windows 11**, or **macOS**. No Docker.
+Install and run Vijayavipanchi locally on **Ubuntu 24.04**, **Windows 11**, or **macOS**. No Docker.
 
 ## Prerequisites
 
@@ -132,7 +132,7 @@ npm test                                         # backend test suite (uses swar
 | Symptom | Fix |
 |--------|-----|
 | `npm` errors about Node version | You're on old Node — `nvm use 22` (the shell default may differ). |
-| Homepage says "Swara is starting up…" | API not reachable — ensure `npm run dev:api` is up on :4000 and Mongo is running. |
+| Homepage says "Vijayavipanchi is starting up…" | API not reachable — ensure `npm run dev:api` is up on :4000 and Mongo is running. |
 | `MongooseServerSelectionError` | MongoDB isn't running / wrong `MONGODB_URI`. |
 | Admin login fails right after seed | Use the `ADMIN_*` values from `backend/.env` that were active **when you seeded**. |
 | Lyrics PDF has boxes for Telugu | Expected (see README “Known limitations”); run `npm run fetch-fonts` to bundle Noto. |

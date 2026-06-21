@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl temple-gradient font-serif text-2xl text-white">
               ॐ
             </div>
-            <h1 className="font-serif text-2xl font-bold">Swara Admin</h1>
+            <h1 className="font-serif text-2xl font-bold">Vijayavipanchi Admin</h1>
             <p className="text-sm text-muted-foreground">Sign in to manage your portal</p>
           </div>
           <form onSubmit={submit} className="space-y-4">
