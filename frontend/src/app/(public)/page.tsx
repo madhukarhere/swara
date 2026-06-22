@@ -1,5 +1,4 @@
 import { getHomepage } from '@/lib/api';
-import { AnnouncementBar } from '@/components/home/announcement-bar';
 import {
   SectionHeading,
   SongList,
@@ -34,7 +33,6 @@ export default async function HomePage() {
 
   return (
     <>
-      {enabled('announcement') && <AnnouncementBar items={data.announcements} />}
       <div className="container space-y-12 py-8 motif-bg">
         <DevotionPanel />
 

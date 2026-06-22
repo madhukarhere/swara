@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Pencil, X, Megaphone, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Megaphone, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { apiJson } from '@/lib/client-api';
 import { useAdminList } from '@/lib/use-admin-list';
 import { AdminSearch, AdminPager } from '@/components/admin/list-controls';
@@ -92,6 +92,17 @@ export default function AdminAnnouncementsPage() {
     else setMsg({ type: 'err', text: 'Could not delete announcement.' });
   };
 
+  const toggleActive = async (a: AdminAnnouncement) => {
+    setMsg(null);
+    const r = await apiJson(`/api/admin/announcements/${a.id}`, 'PUT', { isActive: !a.isActive });
+    if (r.ok) {
+      setMsg({ type: 'ok', text: a.isActive ? 'Announcement hidden.' : 'Announcement shown.' });
+      void reload();
+    } else {
+      setMsg({ type: 'err', text: 'Could not update announcement.' });
+    }
+  };
+
   const fmt = (iso?: string | null) =>
     iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
 
@@ -99,7 +110,9 @@ export default function AdminAnnouncementsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-serif text-3xl font-bold">Announcements</h1>
-        <p className="text-muted-foreground">Manage the scrolling announcement bar at the top of the homepage.</p>
+        <p className="text-muted-foreground">
+          Manage the announcement bar shown across the site (just above the search bar). Use <b>Show</b>/<b>Hide</b> to toggle each one.
+        </p>
       </div>
       {msg ? (
         <p className={msg.type === 'ok' ? 'text-sm font-medium text-green-600' : 'text-sm font-medium text-red-600'}>{msg.text}</p>
@@ -122,7 +135,7 @@ export default function AdminAnnouncementsPage() {
                 maxLength={500}
                 placeholder="🎵 Welcome to Vijayavipanchi — new keertanas added regularly."
               />
-              <p className="text-xs text-muted-foreground">Emoji are welcome. Shown in the homepage announcement bar.</p>
+              <p className="text-xs text-muted-foreground">Emoji are welcome. Shown in the site-wide announcement bar.</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -144,7 +157,7 @@ export default function AdminAnnouncementsPage() {
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} className="accent-[hsl(var(--primary))]" />
-              Active (visible on the homepage)
+              Active (visible on the site)
             </label>
             <div className="flex gap-2">
               <Button type="submit" disabled={saving}>
@@ -192,6 +205,17 @@ export default function AdminAnnouncementsPage() {
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">
+                    <Button size="sm" variant={a.isActive ? 'outline' : 'default'} onClick={() => toggleActive(a)}>
+                      {a.isActive ? (
+                        <>
+                          <EyeOff className="h-3.5 w-3.5" /> Hide
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-3.5 w-3.5" /> Show
+                        </>
+                      )}
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => edit(a)}>
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </Button>

@@ -10,6 +10,7 @@ import publicHomepage from './public/homepage';
 import publicArticles from './public/articles';
 import publicQuotes from './public/quotes';
 import publicContact from './public/contact';
+import publicAnnouncements from './public/announcements';
 
 import adminAuth from './admin/auth';
 import adminUsers from './admin/users';
@@ -38,6 +39,7 @@ export function buildApiRouter(): Router {
   api.use('/articles', publicArticles);
   api.use('/quotes', publicQuotes);
   api.use('/contact', publicContact);
+  api.use('/announcements', publicAnnouncements);
 
   // ---- Admin (CSRF on mutations; auth on everything except login/csrf) ----
   const admin = Router();

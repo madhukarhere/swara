@@ -44,3 +44,18 @@ export async function getArticle(slug: string): Promise<ArticleDetail | null> {
 export function getQuotes(): Promise<{ data: QuoteItem[] }> {
   return apiGet<{ data: QuoteItem[] }>('/api/quotes');
 }
+
+export interface AnnouncementItem {
+  id: string;
+  message: string;
+  link?: string | null;
+}
+
+export async function getAnnouncements(): Promise<AnnouncementItem[]> {
+  try {
+    const r = await apiGet<{ data: AnnouncementItem[] }>('/api/announcements');
+    return r.data ?? [];
+  } catch {
+    return [];
+  }
+}
