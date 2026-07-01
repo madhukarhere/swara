@@ -41,9 +41,15 @@ export function SongFilters({ categories }: { categories: Category[] }) {
             </option>
           ))}
         </Select>
-        <Select value={sp.get('sort') ?? 'latest'} onChange={(e) => update('sort', e.target.value)} aria-label="Sort">
+        <Select value={sp.get('sort') ?? 'title'} onChange={(e) => update('sort', e.target.value)} aria-label="Sort">
+          <option value="title">A–Z</option>
           <option value="latest">Latest</option>
           <option value="most_played">Most played</option>
+        </Select>
+        <Select value={sp.get('limit') ?? '48'} onChange={(e) => update('limit', e.target.value)} aria-label="Songs per page">
+          <option value="12">12 / page</option>
+          <option value="24">24 / page</option>
+          <option value="48">48 / page</option>
         </Select>
       </div>
     </div>

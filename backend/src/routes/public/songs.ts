@@ -46,11 +46,23 @@ async function findSong(idOrSlug: string) {
 }
 
 /* ------------------------------ GET /api/songs ------------------------------ */
+
+/** First-letter filter for a range like "A-C", a single letter "A", or "#" (non-letters). */
+function letterRegex(letter?: string): RegExp | null {
+  if (!letter) return null;
+  if (letter === '#') return /^[^A-Za-z]/;
+  const range = /^([A-Za-z])-([A-Za-z])$/.exec(letter);
+  if (range) return new RegExp('^[' + range[1] + '-' + range[2] + ']', 'i');
+  if (/^[A-Za-z]$/.test(letter)) return new RegExp('^' + letter, 'i');
+  return null;
+}
+
 const listQuery = z.object({
   q: z.string().trim().max(120).optional(),
   category: z.string().trim().optional(),
   language: z.string().trim().optional(),
-  sort: z.enum(['latest', 'most_played']).default('latest'),
+  letter: z.string().trim().max(3).optional(),
+  sort: z.enum(['latest', 'most_played', 'title']).default('latest'),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(60).default(12),
 });
@@ -59,12 +71,12 @@ router.get(
   '/',
   validate({ query: listQuery }),
   asyncHandler(async (req, res) => {
-    const { q, category, language, sort, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
+    const { q, category, language, letter, sort, page, limit } = req.valid!.query as z.infer<typeof listQuery>;
     const filter: Record<string, unknown> = { status: 'published' };
 
     const catId = await resolveCategoryId(category);
     if (catId === null) {
-      res.json(paginate([], 0, page, limit));
+      res.json({ ...paginate([], 0, page, limit), letters: {} });
       return;
     }
     if (catId) filter.category = catId;
@@ -83,10 +95,20 @@ router.get(
       ];
     }
 
-    const sortSpec: Record<string, 1 | -1> =
-      sort === 'most_played' ? { playCount: -1, createdAt: -1 } : { createdAt: -1 };
+    // First-letter counts for the A–C / D–F … range bar — computed on the current
+    // filter WITHOUT the letter constraint so every range shows its total.
+    const baseFilter = { ...filter };
+    const lrx = letterRegex(letter);
+    if (lrx) filter.title = lrx;
 
-    const [items, total] = await Promise.all([
+    const sortSpec: Record<string, 1 | -1> =
+      sort === 'title'
+        ? { title: 1 }
+        : sort === 'most_played'
+          ? { playCount: -1, createdAt: -1 }
+          : { createdAt: -1 };
+
+    const [items, total, letterAgg] = await Promise.all([
       Song.find(filter)
         .sort(sortSpec)
         .skip((page - 1) * limit)
@@ -94,9 +116,20 @@ router.get(
         .populate('category', 'name slug')
         .lean(),
       Song.countDocuments(filter),
+      Song.aggregate([
+        { $match: baseFilter },
+        { $group: { _id: { $toUpper: { $substrCP: ['$title', 0, 1] } }, n: { $sum: 1 } } },
+      ]),
     ]);
 
-    res.json(paginate(items.map(serializeSong), total, page, limit));
+    const letters: Record<string, number> = {};
+    for (const g of letterAgg as { _id: string; n: number }[]) {
+      const ch = String(g._id || '').toUpperCase();
+      const key = /^[A-Z]$/.test(ch) ? ch : '#';
+      letters[key] = (letters[key] || 0) + g.n;
+    }
+
+    res.json({ ...paginate(items.map(serializeSong), total, page, limit), letters });
   }),
 );
 

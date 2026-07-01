@@ -2,6 +2,7 @@ import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { GlobalSearchBar } from '@/components/global-search-bar';
 import { AnnouncementBar } from '@/components/home/announcement-bar';
+import { BackToTop } from '@/components/back-to-top';
 import { getAnnouncements } from '@/lib/api';
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <GlobalSearchBar />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <BackToTop />
     </div>
   );
 }

@@ -14,7 +14,7 @@ const STORAGE_KEY = 'vijayavipanchi:songs-view';
  * the same in either view.
  */
 export function SongResults({ grid, list }: { grid: React.ReactNode; list: React.ReactNode }) {
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [view, setView] = useState<'grid' | 'list'>('list');
 
   useEffect(() => {
     try {

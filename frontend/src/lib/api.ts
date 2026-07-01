@@ -13,8 +13,12 @@ export function getHomepage(): Promise<HomepageData> {
   return apiGet<HomepageData>('/api/homepage');
 }
 
-export function getSongs(query = ''): Promise<Paginated<Song>> {
-  return apiGet<Paginated<Song>>(`/api/songs${query}`);
+export interface SongsResponse extends Paginated<Song> {
+  letters?: Record<string, number>;
+}
+
+export function getSongs(query = ''): Promise<SongsResponse> {
+  return apiGet<SongsResponse>(`/api/songs${query}`);
 }
 
 export async function getSong(slug: string): Promise<SongDetail | null> {
