@@ -74,6 +74,45 @@ export function SongList({ songs, numbered = false, limit }: { songs: Song[]; nu
   );
 }
 
+/**
+ * Compact tile grid — small thumbnail + title per song, packing many songs on
+ * screen at once. Used by the songs page grid view (inside its viewport-fit box).
+ */
+export function SongTileGrid({ songs }: { songs: Song[] }) {
+  if (!songs.length) return null;
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {songs.map((s) => {
+        const Ic = iconForKey(s.id);
+        return (
+          <Link
+            key={s.id}
+            href={`/songs/${s.slug}`}
+            className="group flex items-center gap-2.5 rounded-lg border bg-card p-2 transition-colors hover:border-primary/40 hover:bg-muted"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+              {s.coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={s.coverUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <Ic className="h-5 w-5 text-primary/40" />
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium group-hover:text-primary">{s.title}</span>
+              <span className="block truncate text-xs text-muted-foreground">{categoryName(s.category) || s.singer || ''}</span>
+            </span>
+            <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+              <Play className="h-3 w-3" />
+              {formatNumber(s.playCount)}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 export function CalendarWidget({ today }: { today: HomepageData['today'] }) {
   return (
     <Card className="overflow-hidden">

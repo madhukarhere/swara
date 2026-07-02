@@ -13,6 +13,18 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:api"],
       "port": 4000
+    },
+    {
+      "name": "edi-parser-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "/Users/madhukarmudunuru/work/RND/edi parser"],
+      "port": 8765
+    },
+    {
+      "name": "swara-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8790", "--directory", "/Users/madhukarmudunuru/work/RND/swara"],
+      "port": 8790
     }
   ]
 }

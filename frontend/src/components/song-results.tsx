@@ -1,20 +1,36 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LayoutGrid, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const STORAGE_KEY = 'vijayavipanchi:songs-view';
+const MIN_LIST_HEIGHT = 280; // never squash the list below this (small screens scroll instead)
 
 /**
  * Client wrapper for the songs listing that toggles between the grid (cards)
- * and list (rows) views. Both views are server-rendered and passed in as props,
- * so this stays a tiny client component. The choice is remembered in
- * localStorage. Pagination lives outside this component (URL-based) and works
- * the same in either view.
+ * and list (rows) views. Both views are server-rendered and passed in as props.
+ * The choice is remembered in localStorage.
+ *
+ * The results box sizes itself so the WHOLE page (header, filters, pagers and
+ * footer) fits the viewport — songs scroll inside this box, keeping the footer
+ * visible at all times. It measures how much the document overflows the window
+ * and shrinks/grows by exactly that amount (self-correcting on resize and
+ * grid/list switches).
  */
-export function SongResults({ grid, list }: { grid: React.ReactNode; list: React.ReactNode }) {
+export function SongResults({
+  grid,
+  list,
+  topBar,
+}: {
+  grid: React.ReactNode;
+  list: React.ReactNode;
+  /** Rendered on the same row as the grid/list toggle (e.g. the top pager). */
+  topBar?: React.ReactNode;
+}) {
   const [view, setView] = useState<'grid' | 'list'>('list');
+  const [maxH, setMaxH] = useState<number | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -24,6 +40,30 @@ export function SongResults({ grid, list }: { grid: React.ReactNode; list: React
       /* ignore */
     }
   }, []);
+
+  const fit = useCallback(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const overflow = document.documentElement.scrollHeight - window.innerHeight;
+    if (Math.abs(overflow) < 2) return; // already fits
+    setMaxH(Math.max(MIN_LIST_HEIGHT, el.clientHeight - overflow));
+  }, []);
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(fit);
+    window.addEventListener('resize', fit);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', fit);
+    };
+  }, [fit, view]);
+
+  // Converge: after each maxH render commits, re-measure once (stops when it fits
+  // or the MIN clamp makes the target stable).
+  useEffect(() => {
+    const raf = requestAnimationFrame(fit);
+    return () => cancelAnimationFrame(raf);
+  }, [fit, maxH]);
 
   const choose = (v: 'grid' | 'list') => {
     setView(v);
@@ -51,14 +91,21 @@ export function SongResults({ grid, list }: { grid: React.ReactNode; list: React
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-end">
-        <div className="inline-flex rounded-lg border p-0.5">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">{topBar}</div>
+        <div className="inline-flex shrink-0 rounded-lg border p-0.5">
           {btn('grid', LayoutGrid, 'Grid')}
           {btn('list', List, 'List')}
         </div>
       </div>
-      {view === 'grid' ? grid : list}
+      <div
+        ref={wrapRef}
+        style={maxH ? { maxHeight: `${maxH}px` } : undefined}
+        className="scrollbar-thin overflow-y-auto overscroll-contain pr-1"
+      >
+        {view === 'grid' ? grid : list}
+      </div>
     </div>
   );
 }

@@ -6,10 +6,10 @@ const SYMBOLS = [Lotus, Diya, Bell, Conch, Kalasha, PeacockFeather];
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t bg-muted/30">
-      <div className="container py-10">
-        <MotifDivider className="mb-6" />
-        <div className="mb-6 flex items-center justify-center gap-5 text-muted-foreground/70 sm:gap-8">
+    <footer className="mt-8 border-t bg-muted/30">
+      <div className="container py-6">
+        <MotifDivider className="mb-4" />
+        <div className="mb-4 flex items-center justify-center gap-5 text-muted-foreground/70 sm:gap-8">
           {SYMBOLS.map((Symbol, i) => (
             <Symbol key={i} className="h-5 w-5 transition-colors hover:text-primary sm:h-6 sm:w-6" />
           ))}

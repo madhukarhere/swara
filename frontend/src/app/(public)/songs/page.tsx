@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getSongs, getCategories } from '@/lib/api';
 import { SongFilters } from '@/components/song-filters';
-import { SongGrid, SongList } from '@/components/home/home-sections';
+import { SongList, SongTileGrid } from '@/components/home/home-sections';
 import { SongResults } from '@/components/song-results';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -123,7 +123,7 @@ export default async function SongsPage({
   const pageHref = (n: number) => hrefWith({ page: String(n) });
 
   return (
-    <div className="container space-y-6 py-8">
+    <div className="container space-y-4 py-5">
       <div>
         <h1 className="font-serif text-3xl font-bold">Songs</h1>
         <p className="text-muted-foreground">
@@ -165,16 +165,18 @@ export default async function SongsPage({
         })}
       </nav>
 
-      {/* Top pagination — visible without scrolling */}
-      <Pager page={page} pages={meta.pages} hrefFor={pageHref} />
-
-      {/* Results — height follows the number of songs on the page (the page-size). */}
+      {/* Results — songs scroll inside the box so the pagers + footer stay on screen.
+          The top pager shares a row with the grid/list toggle. */}
       {data.length === 0 ? (
         <div className="rounded-xl border border-dashed py-20 text-center text-muted-foreground">
           No songs found{letter ? ' in this range' : ''}. Try another range or filter.
         </div>
       ) : (
-        <SongResults grid={<SongGrid songs={data} />} list={<SongList songs={data} />} />
+        <SongResults
+          grid={<SongTileGrid songs={data} />}
+          list={<SongList songs={data} />}
+          topBar={<Pager page={page} pages={meta.pages} hrefFor={pageHref} />}
+        />
       )}
 
       {/* Bottom pagination */}
