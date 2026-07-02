@@ -43,7 +43,7 @@ export default async function HomePage() {
         {enabled('recentlyAdded') && data.recentlyAdded.length > 0 ? (
           <section>
             <SectionHeading title="Recently Added" href="/songs?sort=latest" icon={<Bansuri className="h-6 w-6 text-primary" />} />
-            <SongGrid songs={data.recentlyAdded} />
+            <SongGrid songs={data.recentlyAdded} limit={6} />
           </section>
         ) : null}
 

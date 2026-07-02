@@ -5,7 +5,10 @@ import { LayoutGrid, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const STORAGE_KEY = 'vijayavipanchi:songs-view';
-const MIN_LIST_HEIGHT = 280; // never squash the list below this (small screens scroll instead)
+// Room for ~6 grid rows (tile ≈ 58px + 8px gap → ~66px pitch). On short
+// viewports this forces the page to scroll rather than squeezing the list; the
+// back-to-top button still gets you back up quickly.
+const MIN_LIST_HEIGHT = 400;
 
 /**
  * Client wrapper for the songs listing that toggles between the grid (cards)

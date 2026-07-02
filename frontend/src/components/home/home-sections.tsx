@@ -6,6 +6,7 @@ import { SongCard } from '@/components/song-card';
 import { categoryName, type Song, type Category, type HomepageData } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
 import { iconForKey } from '@/components/icons/cultural-icons';
+import { computePanchang } from '@/lib/panchang';
 
 export function SectionHeading({ title, href, icon }: { title: string; href?: string; icon?: React.ReactNode }) {
   return (
@@ -23,12 +24,20 @@ export function SectionHeading({ title, href, icon }: { title: string; href?: st
   );
 }
 
-export function SongGrid({ songs }: { songs: Song[] }) {
-  if (!songs.length) return null;
+/**
+ * Card grid of songs. `limit` caps how many render; pass e.g. 6 for a homepage
+ * strip that shows 5 songs on laptop (lg) and 6 on wide screens (xl) — the
+ * 6th card is hidden below xl so the row always fills exactly.
+ */
+export function SongGrid({ songs, limit }: { songs: Song[]; limit?: number }) {
+  const list = typeof limit === 'number' ? songs.slice(0, limit) : songs;
+  if (!list.length) return null;
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-      {songs.map((s) => (
-        <SongCard key={s.id} song={s} />
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      {list.map((s, idx) => (
+        <div key={s.id} className={idx === 5 ? 'hidden xl:block' : undefined}>
+          <SongCard song={s} />
+        </div>
       ))}
     </div>
   );
@@ -113,7 +122,27 @@ export function SongTileGrid({ songs }: { songs: Song[] }) {
   );
 }
 
+/** Two-column "Label : Value" row used inside the Panchangam block. */
+function PanchangRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline gap-2 text-sm">
+      <span className="min-w-[6.5rem] shrink-0 text-muted-foreground">{label}:</span>
+      <span className="min-w-0 text-foreground/90">{children}</span>
+    </div>
+  );
+}
+
 export function CalendarWidget({ today }: { today: HomepageData['today'] }) {
+  // Full Drik Panchangam for Tirupati. Safe to call server-side — mhah-panchang
+  // is a pure JS lib with no external calls. Wrapped in try/catch so a lib error
+  // never breaks the homepage.
+  let panchang: ReturnType<typeof computePanchang> | null = null;
+  try {
+    panchang = computePanchang(new Date(today.iso));
+  } catch {
+    panchang = null;
+  }
+
   return (
     <Card className="overflow-hidden">
       <div className="temple-gradient px-5 py-3 text-white">
@@ -130,6 +159,35 @@ export function CalendarWidget({ today }: { today: HomepageData['today'] }) {
             {today.festival.description ? (
               <p className="mt-2 text-xs text-muted-foreground">{today.festival.description}</p>
             ) : null}
+          </div>
+        ) : null}
+
+        {panchang ? (
+          <div className="mt-4 border-t pt-4 text-left">
+            <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+              తెలుగు పంచాంగం · {panchang.location}
+            </p>
+            <p className="mb-3 text-center font-serif text-sm font-semibold text-primary">
+              తేది: {panchang.date}, {panchang.vaara}
+            </p>
+            <div className="space-y-1">
+              <PanchangRow label="సంవత్సరం">శ్రీ {panchang.samvatsara} నామ సంవత్సరం</PanchangRow>
+              <PanchangRow label="అయనం">{panchang.ayana}</PanchangRow>
+              <PanchangRow label="రుతువు">{panchang.ritu}</PanchangRow>
+              <PanchangRow label="మాసం">{panchang.masa}</PanchangRow>
+              <PanchangRow label="పక్షం">{panchang.paksha}</PanchangRow>
+              <PanchangRow label="తిథి">
+                {panchang.tithi} — {panchang.tithiEnd} <span className="text-muted-foreground">తదుపరి</span> {panchang.nextTithi}
+              </PanchangRow>
+              <PanchangRow label="నక్షత్రం">
+                {panchang.nakshatra} — {panchang.nakshatraEnd} <span className="text-muted-foreground">తదుపరి</span> {panchang.nextNakshatra}
+              </PanchangRow>
+              <PanchangRow label="రాహుకాలం">
+                {panchang.rahuStart} <span className="text-muted-foreground">నుంచి</span> {panchang.rahuEnd} <span className="text-muted-foreground">వరకు</span>
+              </PanchangRow>
+              <PanchangRow label="సూర్యోదయం">{panchang.sunrise}</PanchangRow>
+              <PanchangRow label="సూర్యాస్తమయం">{panchang.sunset}</PanchangRow>
+            </div>
           </div>
         ) : null}
       </CardContent>
