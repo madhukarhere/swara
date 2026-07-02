@@ -47,7 +47,19 @@ export default async function HomePage() {
           </section>
         ) : null}
 
-        {/* Admin-curated picks beside Most Played */}
+        {enabled('featured') && data.featured.length > 0 ? (
+          <section>
+            <SectionHeading title="Featured" href="/songs" icon={<Diya className="h-6 w-6 text-primary" />} />
+            <SongList songs={data.featured} limit={6} />
+          </section>
+        ) : null}
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {enabled('calendar') ? <CalendarWidget today={data.today} /> : null}
+          {enabled('quote') && data.quote ? <QuoteCard quote={data.quote} /> : null}
+        </div>
+
+        {/* Admin-curated picks beside Most Played — moved below the calendar/quote row */}
         {(enabled('top5') && data.top5.length > 0) || (enabled('mostPlayed') && data.mostPlayed.length > 0) ? (
           <section className="grid gap-8 lg:grid-cols-2">
             {enabled('top5') && data.top5.length > 0 ? (
@@ -64,22 +76,6 @@ export default async function HomePage() {
             ) : null}
           </section>
         ) : null}
-
-        {enabled('featured') && data.featured.length > 0 ? (
-          <section>
-            <SectionHeading title="Featured" href="/songs" icon={<Diya className="h-6 w-6 text-primary" />} />
-            <SongList songs={data.featured} limit={6} />
-          </section>
-        ) : null}
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          {enabled('calendar') ? <CalendarWidget today={data.today} /> : null}
-          {enabled('quote') && data.quote ? (
-            <div className="lg:col-span-2">
-              <QuoteCard quote={data.quote} />
-            </div>
-          ) : null}
-        </div>
 
         {data.banner ? <FestivalBanner banner={data.banner} /> : null}
 

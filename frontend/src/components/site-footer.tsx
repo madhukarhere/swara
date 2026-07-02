@@ -21,20 +21,20 @@ export function SiteFooter() {
             <span>· Cultural Music &amp; Lyrics Portal</span>
           </p>
           <nav className="flex flex-wrap justify-center gap-4">
-            <Link href="/songs" className="hover:text-foreground">
-              Songs
-            </Link>
-            <Link href="/articles" className="hover:text-foreground">
-              Articles
-            </Link>
-            <Link href="/quotes" className="hover:text-foreground">
-              Quotes
+            <Link href="/about" className="hover:text-foreground">
+              About
             </Link>
             <Link href="/contribute" className="hover:text-foreground">
               Contribute
             </Link>
             <Link href="/contact" className="hover:text-foreground">
               Contact
+            </Link>
+            <Link href="/disclaimer" className="hover:text-foreground">
+              Disclaimer
+            </Link>
+            <Link href="/terms" className="hover:text-foreground">
+              Terms
             </Link>
             <Link href="/admin" className="hover:text-foreground">
               Admin

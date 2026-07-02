@@ -7,6 +7,7 @@ export interface ICategory extends Document {
   description?: string;
   coverImage?: string;
   order: number;
+  isVisible: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +19,7 @@ const categorySchema = new Schema<ICategory>(
     description: { type: String, trim: true },
     coverImage: { type: String },
     order: { type: Number, default: 0 },
+    isVisible: { type: Boolean, default: true },
   },
   { timestamps: true },
 );

@@ -122,12 +122,41 @@ export function SongTileGrid({ songs }: { songs: Song[] }) {
   );
 }
 
-/** Two-column "Label : Value" row used inside the Panchangam block. */
-function PanchangRow({ label, children }: { label: string; children: React.ReactNode }) {
+/** Compact "chip" cell for the Panchangam info grid — label above, value below. */
+function PanchangCell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline gap-2 text-sm">
-      <span className="min-w-[6.5rem] shrink-0 text-muted-foreground">{label}:</span>
-      <span className="min-w-0 text-foreground/90">{children}</span>
+    <div className="rounded-md border bg-card/40 px-2.5 py-1.5">
+      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-0.5 truncate text-sm font-medium text-foreground/90">{children}</p>
+    </div>
+  );
+}
+
+/** Full-width row for multi-part Panchangam values (current + end time + next). */
+function PanchangDetailRow({
+  label,
+  value,
+  end,
+  next,
+}: {
+  label: string;
+  value: string;
+  end?: string;
+  next?: string;
+}) {
+  return (
+    <div className="rounded-md border bg-card/40 px-2.5 py-1.5">
+      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-sm font-medium text-foreground/90">
+        {value}
+        {end ? <span className="text-muted-foreground"> · {end}</span> : null}
+        {next ? (
+          <>
+            <span className="text-muted-foreground"> → </span>
+            {next}
+          </>
+        ) : null}
+      </p>
     </div>
   );
 }
@@ -144,49 +173,59 @@ export function CalendarWidget({ today }: { today: HomepageData['today'] }) {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="flex h-full flex-col overflow-hidden">
       <div className="temple-gradient px-5 py-3 text-white">
         <p className="flex items-center gap-2 text-sm font-medium">
           <CalendarDays className="h-4 w-4" /> Today
         </p>
       </div>
-      <CardContent className="p-5 text-center">
-        <p className="text-sm font-medium text-muted-foreground">{today.weekday}</p>
-        <p className="font-serif text-3xl font-bold">{today.dateLabel}</p>
-        {today.festival ? (
-          <div className="mt-3">
-            <Badge variant="gold">{today.festival.name}</Badge>
-            {today.festival.description ? (
-              <p className="mt-2 text-xs text-muted-foreground">{today.festival.description}</p>
-            ) : null}
-          </div>
-        ) : null}
+      <CardContent className="flex flex-1 flex-col p-5">
+        <div className="text-center">
+          <p className="text-sm font-medium text-muted-foreground">{today.weekday}</p>
+          <p className="font-serif text-3xl font-bold">{today.dateLabel}</p>
+          {today.festival ? (
+            <div className="mt-3">
+              <Badge variant="gold">{today.festival.name}</Badge>
+              {today.festival.description ? (
+                <p className="mt-2 text-xs text-muted-foreground">{today.festival.description}</p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
 
         {panchang ? (
-          <div className="mt-4 border-t pt-4 text-left">
-            <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+          <div className="mt-4 flex flex-1 flex-col border-t pt-4">
+            <p className="mb-1 text-center text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
               తెలుగు పంచాంగం · {panchang.location}
             </p>
             <p className="mb-3 text-center font-serif text-sm font-semibold text-primary">
-              తేది: {panchang.date}, {panchang.vaara}
+              {panchang.date} · {panchang.vaara}
             </p>
-            <div className="space-y-1">
-              <PanchangRow label="సంవత్సరం">శ్రీ {panchang.samvatsara} నామ సంవత్సరం</PanchangRow>
-              <PanchangRow label="అయనం">{panchang.ayana}</PanchangRow>
-              <PanchangRow label="రుతువు">{panchang.ritu}</PanchangRow>
-              <PanchangRow label="మాసం">{panchang.masa}</PanchangRow>
-              <PanchangRow label="పక్షం">{panchang.paksha}</PanchangRow>
-              <PanchangRow label="తిథి">
-                {panchang.tithi} — {panchang.tithiEnd} <span className="text-muted-foreground">తదుపరి</span> {panchang.nextTithi}
-              </PanchangRow>
-              <PanchangRow label="నక్షత్రం">
-                {panchang.nakshatra} — {panchang.nakshatraEnd} <span className="text-muted-foreground">తదుపరి</span> {panchang.nextNakshatra}
-              </PanchangRow>
-              <PanchangRow label="రాహుకాలం">
-                {panchang.rahuStart} <span className="text-muted-foreground">నుంచి</span> {panchang.rahuEnd} <span className="text-muted-foreground">వరకు</span>
-              </PanchangRow>
-              <PanchangRow label="సూర్యోదయం">{panchang.sunrise}</PanchangRow>
-              <PanchangRow label="సూర్యాస్తమయం">{panchang.sunset}</PanchangRow>
+            <div className="grid grid-cols-2 gap-1.5">
+              <PanchangCell label="సంవత్సరం">{panchang.samvatsara}</PanchangCell>
+              <PanchangCell label="అయనం">{panchang.ayana}</PanchangCell>
+              <PanchangCell label="రుతువు">{panchang.ritu}</PanchangCell>
+              <PanchangCell label="మాసం">{panchang.masa}</PanchangCell>
+              <PanchangCell label="పక్షం">{panchang.paksha}</PanchangCell>
+              <PanchangCell label="రాహుకాలం">
+                {panchang.rahuStart}–{panchang.rahuEnd}
+              </PanchangCell>
+              <PanchangCell label="సూర్యోదయం">{panchang.sunrise}</PanchangCell>
+              <PanchangCell label="సూర్యాస్తమయం">{panchang.sunset}</PanchangCell>
+            </div>
+            <div className="mt-1.5 space-y-1.5">
+              <PanchangDetailRow
+                label="తిథి"
+                value={panchang.tithi}
+                end={panchang.tithiEnd}
+                next={panchang.nextTithi}
+              />
+              <PanchangDetailRow
+                label="నక్షత్రం"
+                value={panchang.nakshatra}
+                end={panchang.nakshatraEnd}
+                next={panchang.nextNakshatra}
+              />
             </div>
           </div>
         ) : null}
@@ -198,11 +237,25 @@ export function CalendarWidget({ today }: { today: HomepageData['today'] }) {
 export function QuoteCard({ quote }: { quote: HomepageData['quote'] }) {
   if (!quote) return null;
   return (
-    <Card className="h-full">
-      <CardContent className="flex h-full flex-col justify-center p-6">
-        <QuoteIcon className="mb-2 h-6 w-6 text-primary/60" />
-        <blockquote className="font-serif text-lg italic leading-relaxed">“{quote.text}”</blockquote>
-        {quote.author ? <p className="mt-3 text-sm font-medium text-muted-foreground">— {quote.author}</p> : null}
+    <Card className="relative flex h-full flex-col overflow-hidden">
+      <div className="absolute inset-0 -z-0 opacity-[0.06]">
+        <div className="temple-gradient h-full w-full" />
+      </div>
+      <QuoteIcon className="absolute -left-4 -top-4 h-32 w-32 rotate-6 text-primary/[0.06]" aria-hidden />
+      <QuoteIcon className="absolute -bottom-6 -right-4 h-32 w-32 -rotate-180 text-primary/[0.06]" aria-hidden />
+      <CardContent className="relative z-10 flex h-full flex-col justify-center p-8 text-center">
+        <QuoteIcon className="mx-auto mb-4 h-8 w-8 text-primary/70" />
+        <blockquote className="font-serif text-xl italic leading-relaxed sm:text-2xl">
+          “{quote.text}”
+        </blockquote>
+        {quote.author ? (
+          <>
+            <div className="mx-auto mt-5 h-px w-16 bg-primary/30" />
+            <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              {quote.author}
+            </p>
+          </>
+        ) : null}
       </CardContent>
     </Card>
   );

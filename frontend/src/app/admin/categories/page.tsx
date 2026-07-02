@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Plus, Trash2, Pencil, X } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Eye, EyeOff } from 'lucide-react';
 import { apiJson, apiForm } from '@/lib/client-api';
 import { useAdminList } from '@/lib/use-admin-list';
 import { AdminSearch, AdminPager } from '@/components/admin/list-controls';
@@ -21,6 +21,7 @@ export default function AdminCategoriesPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [order, setOrder] = useState('0');
+  const [isVisible, setIsVisible] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -30,6 +31,7 @@ export default function AdminCategoriesPage() {
     setName('');
     setDescription('');
     setOrder('0');
+    setIsVisible(true);
     if (fileRef.current) fileRef.current.value = '';
   };
 
@@ -41,6 +43,7 @@ export default function AdminCategoriesPage() {
     fd.set('name', name);
     fd.set('description', description);
     fd.set('order', order);
+    fd.set('isVisible', String(isVisible));
     if (fileRef.current?.files?.[0]) fd.set('cover', fileRef.current.files[0]);
     const r = editingId
       ? await apiForm(`/api/admin/categories/${editingId}`, 'PUT', fd)
@@ -60,7 +63,21 @@ export default function AdminCategoriesPage() {
     setName(c.name);
     setDescription(c.description ?? '');
     setOrder(String(c.order ?? 0));
+    setIsVisible(c.isVisible !== false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleVisibility = async (c: Category) => {
+    const next = !(c.isVisible !== false);
+    const fd = new FormData();
+    fd.set('isVisible', String(next));
+    const r = await apiForm(`/api/admin/categories/${c.id}`, 'PUT', fd);
+    if (r.ok) {
+      setMsg({ type: 'ok', text: next ? `“${c.name}” is now visible.` : `“${c.name}” is now hidden.` });
+      void reload();
+    } else {
+      setMsg({ type: 'err', text: (r.body as { error?: string }).error || 'Could not update visibility.' });
+    }
   };
 
   const remove = async (c: Category) => {
@@ -102,6 +119,18 @@ export default function AdminCategoriesPage() {
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={isVisible}
+                onChange={(e) => setIsVisible(e.target.checked)}
+                className="h-4 w-4 rounded border-input accent-primary"
+              />
+              <span>Visible on the site</span>
+              <span className="text-xs text-muted-foreground">
+                — hidden categories won&apos;t appear in filters, browse chips, or homepage lists.
+              </span>
+            </label>
             <div className="flex gap-2">
               <Button type="submit" disabled={saving}>
                 {saving ? <Spinner className="h-4 w-4 text-current" /> : null}
@@ -128,27 +157,48 @@ export default function AdminCategoriesPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {cats.map((c) => (
-              <Card key={c.id}>
-                <CardContent className="flex items-start justify-between gap-3 p-4">
-                  <div className="min-w-0">
-                    <p className="font-serif font-semibold">{c.name}</p>
-                    {c.description ? <p className="line-clamp-2 text-sm text-muted-foreground">{c.description}</p> : null}
-                    <Badge variant="muted" className="mt-2">
-                      {c.songCount ?? 0} songs
-                    </Badge>
-                  </div>
-                  <div className="flex shrink-0 flex-col gap-1">
-                    <Button size="sm" variant="outline" onClick={() => edit(c)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => remove(c)} aria-label="Delete">
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {cats.map((c) => {
+              const visible = c.isVisible !== false;
+              return (
+                <Card key={c.id} className={visible ? undefined : 'opacity-70'}>
+                  <CardContent className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="font-serif font-semibold">{c.name}</p>
+                      {c.description ? <p className="line-clamp-2 text-sm text-muted-foreground">{c.description}</p> : null}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <Badge variant="muted">{c.songCount ?? 0} songs</Badge>
+                        {visible ? (
+                          <Badge variant="muted" className="border-green-600/30 bg-green-50 text-green-700">
+                            <Eye className="mr-1 h-3 w-3" /> Visible
+                          </Badge>
+                        ) : (
+                          <Badge variant="muted" className="border-amber-600/30 bg-amber-50 text-amber-700">
+                            <EyeOff className="mr-1 h-3 w-3" /> Hidden
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => toggleVisibility(c)}
+                        aria-label={visible ? 'Hide' : 'Show'}
+                        title={visible ? 'Hide from site' : 'Show on site'}
+                      >
+                        {visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => edit(c)} aria-label="Edit">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => remove(c)} aria-label="Delete">
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
           <AdminPager page={meta.page} pages={meta.pages} total={meta.total} onPage={setPage} />
         </>

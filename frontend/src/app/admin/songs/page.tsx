@@ -36,9 +36,10 @@ export default function AdminSongsPage() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  // Category dropdown needs ALL categories — use the (unpaginated) public endpoint.
+  // Category dropdown needs ALL categories including hidden ones so admins can
+  // still assign songs to them — use the admin unpaginated endpoint.
   useEffect(() => {
-    apiJson<{ data: Category[] }>('/api/categories').then((r) => {
+    apiJson<{ data: Category[] }>('/api/admin/categories/all').then((r) => {
       if (r.ok) setCategories(r.body.data);
     });
   }, []);

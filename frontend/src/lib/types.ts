@@ -5,6 +5,7 @@ export interface Category {
   description?: string | null;
   coverUrl?: string | null;
   order?: number;
+  isVisible?: boolean;
   songCount?: number;
 }
 

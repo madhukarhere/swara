@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Share songs, lyrics and documents, help proofread, or support Vijayavipanchi.',
 };
 
-const EMAIL = 'contact@vijayavipanchi.org';
+const EMAIL = 'vijayavipanchi@gmail.com';
 
 const MATERIALS = [
   { icon: Music2, label: 'Telugu Sangh songs' },

@@ -104,7 +104,7 @@ router.get(
     const [announcements, banners, categories] = await Promise.all([
       Announcement.find(activeWindow(now)).sort({ order: 1, createdAt: -1 }).limit(10).lean(),
       Banner.find(activeWindow(now)).sort({ order: 1, createdAt: -1 }).lean(),
-      Category.find().sort({ order: 1 }).limit(12).lean(),
+      Category.find({ isVisible: { $ne: false } }).sort({ order: 1 }).limit(12).lean(),
     ]);
 
     // Today / calendar festival

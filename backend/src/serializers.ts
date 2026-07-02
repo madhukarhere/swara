@@ -9,6 +9,7 @@ interface CategoryLike {
   description?: string;
   coverImage?: string;
   order?: number;
+  isVisible?: boolean;
 }
 
 export function serializeCategory(c: CategoryLike) {
@@ -19,6 +20,7 @@ export function serializeCategory(c: CategoryLike) {
     description: c.description ?? null,
     coverUrl: c.coverImage ? publicUrl('images', c.coverImage) : null,
     order: c.order ?? 0,
+    isVisible: c.isVisible !== false,
   };
 }
 

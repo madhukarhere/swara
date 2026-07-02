@@ -47,10 +47,27 @@ router.get(
   }),
 );
 
+/* GET /api/admin/categories/all — unpaginated list including hidden categories,
+   used by admin song forms so hidden categories remain selectable. */
+router.get(
+  '/all',
+  asyncHandler(async (_req, res) => {
+    const cats = await Category.find().sort({ order: 1, name: 1 }).lean();
+    res.json({ data: cats.map(serializeCategory) });
+  }),
+);
+
+// FormData sends every field as a string; z.coerce.boolean() treats "false"
+// as truthy, so parse the string explicitly.
+const formBool = z
+  .union([z.boolean(), z.string()])
+  .transform((v) => (typeof v === 'boolean' ? v : v === 'true' || v === '1'));
+
 const categoryCreate = z.object({
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(1000).optional(),
   order: z.coerce.number().int().optional(),
+  isVisible: formBool.optional(),
 });
 
 /* POST /api/admin/categories */
@@ -67,6 +84,7 @@ router.post(
       slug,
       description: data.description ? cleanText(data.description) : undefined,
       order: data.order ?? 0,
+      isVisible: data.isVisible ?? true,
       coverImage: cover?.filename,
     });
     await writeAudit({ req, action: 'create', entity: 'Category', entityId: String(category._id), meta: { name: category.name } });
@@ -90,6 +108,7 @@ router.put(
     if (data.name !== undefined) category.name = cleanText(data.name);
     if (data.description !== undefined) category.description = cleanText(data.description);
     if (data.order !== undefined) category.order = data.order;
+    if (data.isVisible !== undefined) category.isVisible = data.isVisible;
     if (req.file) {
       deleteStored('images', category.coverImage);
       category.coverImage = req.file.filename;

@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { Button } from '@/components/ui/button';
-import { Veena } from '@/components/icons/cultural-icons';
 import { cn } from '@/lib/utils';
 
 const nav = [
@@ -26,11 +25,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container flex h-16 items-center justify-between gap-2">
-        <Link href="/" onClick={() => setOpen(false)} className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg temple-gradient text-white shadow-sm">
-            <Veena className="h-6 w-6" />
-          </span>
-          <span className="font-serif text-lg font-bold tracking-tight sm:text-xl">Vijayavipanchi</span>
+        <Link href="/" onClick={() => setOpen(false)} className="flex shrink-0 items-center" aria-label="Vijaya Vipanchi — Home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Vijaya Vipanchi" className="h-10 w-auto sm:h-12" />
         </Link>
 
         {/* Desktop / tablet nav */}
