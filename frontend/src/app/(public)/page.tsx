@@ -35,7 +35,11 @@ export default async function HomePage() {
   return (
     <>
       <div className="container space-y-12 py-8 motif-bg">
-        <DevotionPanel />
+        <DevotionPanel
+          enabled={data.devotionPanel?.enabled}
+          left={data.devotionPanel?.left}
+          right={data.devotionPanel?.right}
+        />
 
         <MotifDivider />
 

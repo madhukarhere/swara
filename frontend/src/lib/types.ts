@@ -70,6 +70,11 @@ export interface HomepageData {
   heroSlides: { title: string; subtitle?: string | null; image: string; link?: string | null }[];
   announcements: { id: string; message: string; link?: string | null }[];
   banner: { id: string; festivalKey: string; title: string; subtitle?: string | null; image: string; link?: string | null } | null;
+  devotionPanel?: {
+    enabled: boolean;
+    left: { image: string | null; title: string; caption: string };
+    right: { image: string | null; title: string; caption: string };
+  };
   today: { iso: string; weekday: string; dateLabel: string; festival: { name: string; festivalKey?: string | null; description?: string | null } | null };
   quote: { text: string; author?: string | null; language?: string | null } | null;
   top5: Song[];

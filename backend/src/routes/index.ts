@@ -11,6 +11,8 @@ import publicArticles from './public/articles';
 import publicQuotes from './public/quotes';
 import publicContact from './public/contact';
 import publicAnnouncements from './public/announcements';
+import publicStaticPages from './public/staticPages';
+import publicAnalytics from './public/analytics';
 
 import adminAuth from './admin/auth';
 import adminUsers from './admin/users';
@@ -24,6 +26,10 @@ import adminQuotes from './admin/quotes';
 import adminAnnouncements from './admin/announcements';
 import adminContact from './admin/contact';
 import adminDashboard from './admin/dashboard';
+import adminStaticPages from './admin/staticPages';
+import adminMail from './admin/mail';
+import adminHomepageSettings from './admin/homepageSettings';
+import adminAnalytics from './admin/analytics';
 
 export function buildApiRouter(): Router {
   const api = Router();
@@ -40,6 +46,8 @@ export function buildApiRouter(): Router {
   api.use('/quotes', publicQuotes);
   api.use('/contact', publicContact);
   api.use('/announcements', publicAnnouncements);
+  api.use('/pages', publicStaticPages);
+  api.use('/analytics', publicAnalytics);
 
   // ---- Admin (CSRF on mutations; auth on everything except login/csrf) ----
   const admin = Router();
@@ -56,6 +64,10 @@ export function buildApiRouter(): Router {
   admin.use('/announcements', requireAdmin, adminAnnouncements);
   admin.use('/contact', requireAdmin, adminContact);
   admin.use('/dashboard', requireAdmin, adminDashboard);
+  admin.use('/pages', requireAdmin, adminStaticPages);
+  admin.use('/mail', requireAdmin, adminMail);
+  admin.use('/homepage-settings', requireAdmin, adminHomepageSettings);
+  admin.use('/analytics', requireAdmin, adminAnalytics);
   api.use('/admin', admin);
 
   return api;

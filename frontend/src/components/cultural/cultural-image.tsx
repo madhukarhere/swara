@@ -1,43 +1,25 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-
 /**
- * Static cultural imagery dropped into frontend/public/cultural/.
- * Each image probes whether it actually loads (client-side) and only renders
- * once confirmed — so a missing file shows nothing (no broken-image box), and
- * it appears automatically once the file is added.
+ * Hero devotion panel: two side-by-side (or stacked) devotional images.
+ * Data comes from the CMS via the homepage API response — admin can upload
+ * images and edit the titles/captions from Admin → Homepage.
+ *
+ * Falls back to the bundled static images under `/cultural/*` when the CMS
+ * has no image set, so a fresh install still shows Bharat Mata + Veena.
  */
-function useImageExists(src: string): boolean | null {
-  const [exists, setExists] = useState<boolean | null>(null);
-  useEffect(() => {
-    let active = true;
-    const img = new Image();
-    img.onload = () => {
-      if (active) setExists(true);
-    };
-    img.onerror = () => {
-      if (active) setExists(false);
-    };
-    img.src = src;
-    return () => {
-      active = false;
-    };
-  }, [src]);
-  return exists;
-}
 
-function DevotionImage({
-  src,
-  alt,
-  title,
-  caption,
-}: {
-  src: string;
-  alt: string;
+interface PanelPiece {
+  image: string | null;
   title: string;
   caption: string;
-}) {
+}
+
+interface DevotionPanelProps {
+  enabled?: boolean;
+  left?: PanelPiece;
+  right?: PanelPiece;
+}
+
+function DevotionImage({ src, alt, title, caption }: { src: string; alt: string; title: string; caption: string }) {
   return (
     <figure className="flex flex-col items-center text-center">
       <div className="grid place-items-center overflow-hidden rounded-2xl border-4 border-gold/30 bg-card p-2 shadow-lg">
@@ -52,32 +34,20 @@ function DevotionImage({
   );
 }
 
-/**
- * Hero devotion panel: Bharat Mata and the Saraswati veena shown side by side
- * (stacked on mobile). Each image renders only if its file is present.
- */
-export function DevotionPanel() {
-  const bharat = useImageExists('/cultural/bharat-mata.jpg');
-  const veena = useImageExists('/cultural/veena.png');
-  if (!bharat && !veena) return null;
+export function DevotionPanel({ enabled = true, left, right }: DevotionPanelProps) {
+  if (!enabled) return null;
+
+  const leftSrc = left?.image || '/cultural/bharat-mata.jpg';
+  const rightSrc = right?.image || '/cultural/veena.png';
+  const leftTitle = left?.title || 'वन्दे मातरम्';
+  const leftCaption = left?.caption || 'Vande Mataram — in devotion to the Motherland';
+  const rightTitle = right?.title || 'सरस्वती वीणा';
+  const rightCaption = right?.caption || 'The veena — the instrument of Goddess Saraswati';
+
   return (
     <section className="flex animate-fade-in flex-col items-center justify-center gap-8 md:flex-row md:items-end md:gap-12">
-      {bharat ? (
-        <DevotionImage
-          src="/cultural/bharat-mata.jpg"
-          alt="Bharat Mata — Mother India"
-          title="वन्दे मातरम्"
-          caption="Vande Mataram — in devotion to the Motherland"
-        />
-      ) : null}
-      {veena ? (
-        <DevotionImage
-          src="/cultural/veena.png"
-          alt="Saraswati veena"
-          title="सरस्वती वीणा"
-          caption="The veena — the instrument of Goddess Saraswati"
-        />
-      ) : null}
+      <DevotionImage src={leftSrc} alt="Bharat Mata — Mother India" title={leftTitle} caption={leftCaption} />
+      <DevotionImage src={rightSrc} alt="Saraswati veena" title={rightTitle} caption={rightCaption} />
     </section>
   );
 }

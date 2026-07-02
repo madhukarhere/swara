@@ -12,6 +12,27 @@ interface CategoryLike {
   isVisible?: boolean;
 }
 
+interface StaticPageLike {
+  _id?: unknown;
+  slug: string;
+  title: string;
+  subtitle?: string;
+  body: string;
+  updatedBy?: string;
+  updatedAt?: Date;
+}
+
+export function serializeStaticPage(p: StaticPageLike) {
+  return {
+    slug: p.slug,
+    title: p.title,
+    subtitle: p.subtitle ?? '',
+    body: p.body,
+    updatedBy: p.updatedBy ?? null,
+    updatedAt: p.updatedAt ?? null,
+  };
+}
+
 export function serializeCategory(c: CategoryLike) {
   return {
     id: String(c._id),

@@ -147,11 +147,23 @@ export interface IHeroSlide {
   link?: string;
 }
 
+export interface IDevotionPanelImage {
+  image?: string;
+  title?: string;
+  caption?: string;
+}
+export interface IDevotionPanel {
+  enabled: boolean;
+  left: IDevotionPanelImage;
+  right: IDevotionPanelImage;
+}
+
 export interface IHomepageSettings extends Document {
   _id: Types.ObjectId;
   singleton: 'singleton';
   sections: IHomepageSection[];
   heroSlides: IHeroSlide[];
+  devotionPanel: IDevotionPanel;
   recentlyAddedMode: 'auto' | 'manual';
   recentlyAddedSongs: Types.ObjectId[];
   mostPlayedMode: 'auto' | 'manual';
@@ -185,11 +197,30 @@ const sectionSchema = new Schema<IHomepageSection>(
   { _id: false },
 );
 
+const devotionPanelImageSchema = new Schema<IDevotionPanelImage>(
+  {
+    image: { type: String },
+    title: { type: String, trim: true },
+    caption: { type: String, trim: true },
+  },
+  { _id: false },
+);
+
+const devotionPanelSchema = new Schema<IDevotionPanel>(
+  {
+    enabled: { type: Boolean, default: true },
+    left: { type: devotionPanelImageSchema, default: () => ({}) },
+    right: { type: devotionPanelImageSchema, default: () => ({}) },
+  },
+  { _id: false },
+);
+
 const homepageSettingsSchema = new Schema<IHomepageSettings>(
   {
     singleton: { type: String, default: 'singleton', enum: ['singleton'], unique: true },
     sections: { type: [sectionSchema], default: [] },
     heroSlides: { type: [heroSlideSchema], default: [] },
+    devotionPanel: { type: devotionPanelSchema, default: () => ({ enabled: true, left: {}, right: {} }) },
     recentlyAddedMode: { type: String, enum: ['auto', 'manual'], default: 'auto' },
     recentlyAddedSongs: [{ type: Schema.Types.ObjectId, ref: 'Song' }],
     mostPlayedMode: { type: String, enum: ['auto', 'manual'], default: 'auto' },

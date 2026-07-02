@@ -28,6 +28,8 @@ export {
   type IHomepageSettings,
   type IHomepageSection,
   type IHeroSlide,
+  type IDevotionPanel,
+  type IDevotionPanelImage,
 } from './homepage';
 export {
   SongPlay,
@@ -38,3 +40,6 @@ export {
   type IAuditLog,
 } from './analytics';
 export { ContactMessage, type IContactMessage, type ContactCategory } from './ContactMessage';
+export { StaticPage, type IStaticPage } from './StaticPage';
+export { MailSettings, type IMailSettings } from './MailSettings';
+export { AnalyticsSettings, type IAnalyticsSettings } from './AnalyticsSettings';

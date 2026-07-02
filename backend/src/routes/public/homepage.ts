@@ -138,6 +138,27 @@ router.get(
         image: h.image?.startsWith('http') ? h.image : publicUrl('banners', h.image),
         link: h.link ?? null,
       })),
+      devotionPanel: {
+        enabled: settings.devotionPanel?.enabled !== false,
+        left: {
+          image: settings.devotionPanel?.left?.image
+            ? settings.devotionPanel.left.image.startsWith('http')
+              ? settings.devotionPanel.left.image
+              : publicUrl('images', settings.devotionPanel.left.image)
+            : null,
+          title: settings.devotionPanel?.left?.title || 'वन्दे मातरम्',
+          caption: settings.devotionPanel?.left?.caption || 'Vande Mataram — in devotion to the Motherland',
+        },
+        right: {
+          image: settings.devotionPanel?.right?.image
+            ? settings.devotionPanel.right.image.startsWith('http')
+              ? settings.devotionPanel.right.image
+              : publicUrl('images', settings.devotionPanel.right.image)
+            : null,
+          title: settings.devotionPanel?.right?.title || 'सरस्वती वीणा',
+          caption: settings.devotionPanel?.right?.caption || 'The veena — the instrument of Goddess Saraswati',
+        },
+      },
       announcements: announcements.map((a) => ({ id: String(a._id), message: a.message, link: a.link ?? null })),
       banner: banner
         ? {

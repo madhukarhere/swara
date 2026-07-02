@@ -63,3 +63,35 @@ export async function getAnnouncements(): Promise<AnnouncementItem[]> {
     return [];
   }
 }
+
+export interface StaticPageContent {
+  slug: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  updatedAt: string | null;
+}
+
+export async function getStaticPage(slug: string): Promise<StaticPageContent | null> {
+  try {
+    const r = await apiGet<{ data: StaticPageContent }>(`/api/pages/${encodeURIComponent(slug)}`);
+    return r.data;
+  } catch {
+    return null;
+  }
+}
+
+export interface AnalyticsPublic {
+  enabled: boolean;
+  measurementId: string;
+  anonymizeIp: boolean;
+}
+
+export async function getAnalytics(): Promise<AnalyticsPublic> {
+  try {
+    const r = await apiGet<{ data: AnalyticsPublic }>('/api/analytics');
+    return r.data;
+  } catch {
+    return { enabled: false, measurementId: '', anonymizeIp: true };
+  }
+}
